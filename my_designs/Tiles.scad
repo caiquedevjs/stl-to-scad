@@ -4,6 +4,10 @@ data = [
     // Source STL: Tiles.stl
     // STL bbox min [-191, -62.5, 0] max [-113, 101, 69] size [78, 163.5, 69]
     // Detected compartments: 2; wall thickness: 1.5mm
+    // Estimated bottom thickness: 0.8mm
+    // Inferred side cutouts: front (high), back (high)
+    // Tiles cavity 1: SQUARE shape (high, curved ratio 0)
+    // Tiles cavity 2: SQUARE shape (high, curved ratio 0)
     [ OBJECT_BOX,
         [ NAME, "Tiles" ],
         [ BOX_SIZE_XYZ, [78, 163.5, 69] ],
@@ -15,6 +19,11 @@ data = [
             [ FTR_NUM_COMPARTMENTS_XY, [1, 1] ],
             [ FTR_SHAPE, SQUARE ],
             [ POSITION_XY, [0, 0] ],
+            [ FTR_CUTOUT_SIDES_4B, [true, false, false, false] ],
+            [ FTR_CUTOUT_TYPE, BOTH ],
+            [ FTR_CUTOUT_HEIGHT_PCT, 100 ],
+            [ FTR_CUTOUT_DEPTH_PCT, 7.143 ],
+            [ FTR_CUTOUT_WIDTH_PCT, 37.34 ],
         ],
         [ BOX_FEATURE,
             [ NAME, "Tiles cavity 2" ],
@@ -22,6 +31,11 @@ data = [
             [ FTR_NUM_COMPARTMENTS_XY, [1, 1] ],
             [ FTR_SHAPE, SQUARE ],
             [ POSITION_XY, [0, 85.5] ],
+            [ FTR_CUTOUT_SIDES_4B, [false, true, false, false] ],
+            [ FTR_CUTOUT_TYPE, BOTH ],
+            [ FTR_CUTOUT_HEIGHT_PCT, 82.437 ],
+            [ FTR_CUTOUT_DEPTH_PCT, 8 ],
+            [ FTR_CUTOUT_WIDTH_PCT, 37.34 ],
         ],
     ],
 ];

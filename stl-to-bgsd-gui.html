@@ -108,7 +108,28 @@
     .app {
       min-height: 100vh;
       display: grid;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: auto auto 1fr;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .server-notice {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 9px 20px;
+      border-bottom: 1px solid #e5bbb7;
+      background: #fff4f2;
+      color: var(--danger);
+      font-size: 13px;
+    }
+
+    .server-notice a {
+      color: var(--accent);
+      font-weight: 600;
     }
 
     .topbar {
@@ -375,6 +396,196 @@
       line-height: 1.45;
     }
 
+    .fidelity-view {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .game-project {
+      padding-top: 16px;
+      margin-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .game-project h3 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .game-project .settings-grid {
+      margin-top: 0;
+    }
+
+    .game-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .game-inventory {
+      margin-bottom: 16px;
+    }
+
+    .game-inventory h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+
+    .game-inventory input {
+      min-width: 70px;
+    }
+
+    .game-error {
+      color: var(--danger);
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre-line;
+    }
+
+    .fidelity-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(110px, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .fidelity-preview {
+      display: block;
+      width: 100%;
+      max-height: 520px;
+      object-fit: contain;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfb;
+    }
+
+    .render-dialog {
+      width: min(460px, calc(100vw - 32px));
+      padding: 0;
+      border: 0;
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 24px 70px rgba(26, 32, 29, 0.28);
+    }
+
+    .render-dialog::backdrop {
+      background: rgba(20, 25, 23, 0.58);
+    }
+
+    .render-modal {
+      padding: 22px;
+    }
+
+    .render-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .render-spinner {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      border: 3px solid #d5dfda;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: render-spin 0.8s linear infinite;
+    }
+
+    .render-dialog[data-state="success"] .render-spinner {
+      border-color: var(--accent);
+      animation: none;
+    }
+
+    .render-dialog[data-state="error"] .render-spinner {
+      border-color: var(--danger);
+      animation: none;
+    }
+
+    .render-heading h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .render-phase,
+    .render-file,
+    .render-limit {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .render-progress {
+      height: 10px;
+      margin-top: 20px;
+      overflow: hidden;
+      border-radius: 5px;
+      background: #e3e8e4;
+    }
+
+    .render-progress-bar {
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.45s ease;
+    }
+
+    .render-dialog[data-state="error"] .render-progress-bar {
+      background: var(--danger);
+    }
+
+    .render-times {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .render-time {
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-soft);
+    }
+
+    .render-time span,
+    .render-time strong {
+      display: block;
+    }
+
+    .render-time span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .render-time strong {
+      margin-top: 4px;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .render-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 18px;
+    }
+
+    @keyframes render-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .render-spinner { animation-duration: 1.8s; }
+      .render-progress-bar { transition: none; }
+    }
+
     @media (max-width: 1180px) {
       .workspace {
         grid-template-columns: 320px 1fr;
@@ -401,7 +612,9 @@
 
       .settings-grid.two,
       .summary,
-      .preview-controls {
+      .preview-controls,
+      .fidelity-metrics,
+      .render-times {
         grid-template-columns: 1fr;
       }
 
@@ -419,11 +632,20 @@
         <p>Conversor visual para gerar OpenSCAD editavel pela Boardgame Insert Toolkit.</p>
       </div>
       <div class="toolbar">
-        <button id="downloadCombined" disabled>Baixar SCAD combinado</button>
-        <button id="downloadEach" class="secondary" disabled>Baixar SCADs individuais</button>
+        <button id="verifyFidelity" class="secondary" disabled>Verificar fidelidade</button>
+        <button id="openFidelity" class="secondary">Importar relatorio</button>
+        <input id="fidelityInput" class="file-input" type="file" accept=".json,.png,application/json,image/png" multiple>
+        <button id="generateStl" class="secondary" disabled>Gerar STL</button>
+        <button id="downloadCombined" disabled>Baixar pacote combinado</button>
+        <button id="downloadEach" class="secondary" disabled>Baixar pacote individual</button>
         <button id="clearFiles" class="danger" disabled>Limpar</button>
       </div>
     </header>
+
+    <div id="serverNotice" class="server-notice" role="alert" hidden>
+      Esta pagina nao esta conectada ao servidor de renderizacao.
+      <a href="http://127.0.0.1:43721/">Abrir interface local</a>
+    </div>
 
     <section class="workspace">
       <aside class="panel">
@@ -452,6 +674,27 @@
               <strong id="metricLargest">0 mm</strong>
             </div>
           </div>
+
+          <section class="game-project" aria-labelledby="gameProjectTitle">
+            <h3 id="gameProjectTitle">Projeto de jogo</h3>
+            <div class="settings-grid two">
+              <label>Nome do jogo<input id="gameName" value="Meu jogo"></label>
+              <label>Largura interna da caixa (mm)<input id="gameBoxX" type="number" min="1" step="0.1" value="200"></label>
+              <label>Profundidade interna (mm)<input id="gameBoxY" type="number" min="1" step="0.1" value="200"></label>
+              <label>Altura interna (mm)<input id="gameBoxZ" type="number" min="1" step="0.1" value="50"></label>
+              <label>Folga externa por lado (mm)<input id="gameOuterClearance" type="number" min="0" step="0.1" value="1"></label>
+            </div>
+            <label class="switch">Ocupar toda a caixa<input id="gameFillBox" type="checkbox"></label>
+            <div class="game-actions">
+              <button id="pick3mf" type="button" class="secondary">Importar pecas 3MF</button>
+              <input id="game3mfInput" class="file-input" type="file" accept=".3mf,model/3mf">
+              <button id="exportGamePieces" type="button" class="secondary" disabled>Baixar STL das pecas</button>
+              <button id="addGamePiece" type="button" class="secondary">Adicionar peca</button>
+              <button id="createGameInsert" type="button" disabled>Criar insert</button>
+            </div>
+            <p id="gameProjectStatus" class="note"></p>
+            <a id="gameServerLink" href="http://127.0.0.1:43721/" hidden>Abrir interface local</a>
+          </section>
 
           <div class="settings-grid">
             <label>
@@ -517,8 +760,15 @@
               <input id="boxLabelText" placeholder="ex: Tiles">
             </label>
             <label>
-              Texto da tampa
+              Nome da tampa
               <input id="lidLabelText" placeholder="ex: Tokens">
+            </label>
+            <label>
+              Orientacao do nome da tampa
+              <select id="lidLabelOrientation">
+                <option value="HORIZONTAL">Horizontal</option>
+                <option value="VERTICAL">Vertical</option>
+              </select>
             </label>
             <label>
               Posicao do texto
@@ -588,6 +838,10 @@
               <input id="detectComponents" type="checkbox" checked>
             </label>
             <label class="switch">
+              Inferir formas e aberturas
+              <input id="inferGeometry" type="checkbox" checked>
+            </label>
+            <label class="switch">
               Colorizar preview BIT
               <input id="colorize" type="checkbox" checked>
             </label>
@@ -627,7 +881,26 @@
           <div class="status" id="statusText">Nenhum STL carregado.</div>
         </div>
         <div class="panel-body">
-          <div id="emptyState" class="empty">Carregue um ou mais STL para medir e configurar os inserts.</div>
+          <section id="gameInventory" class="game-inventory" hidden>
+            <h3>Pecas do jogo</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Peca</th><th>Medidas (mm)</th><th>Quantidade</th><th>Empilhamento</th><th></th></tr></thead>
+                <tbody id="gamePieceRows"></tbody>
+              </table>
+            </div>
+            <p id="gamePlanErrors" class="game-error" role="status"></p>
+          </section>
+          <section id="gameCompartments" class="game-inventory" hidden>
+            <h3>Compartimentos do insert</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Nome</th><th>Tamanho (mm)</th><th>Posicao XY (mm)</th></tr></thead>
+                <tbody id="gameCompartmentRows"></tbody>
+              </table>
+            </div>
+          </section>
+          <div id="emptyState" class="empty">Carregue um STL para reconstruir um insert ou adicione pecas em Projeto de jogo.</div>
           <div id="tableWrap" class="table-wrap" hidden>
             <table>
               <thead>
@@ -644,6 +917,15 @@
               <tbody id="fileRows"></tbody>
             </table>
           </div>
+          <section id="stlCompartments" class="game-inventory" hidden>
+            <h3>Compartimentos detectados</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Arquivo</th><th>Compartimento</th><th>Fundo STL (mm)</th><th>Tamanho BGSD (mm)</th></tr></thead>
+                <tbody id="stlCompartmentRows"></tbody>
+              </table>
+            </div>
+          </section>
         </div>
       </section>
 
@@ -666,18 +948,57 @@
             </label>
           </div>
           <textarea id="scadPreview" spellcheck="false" readonly></textarea>
-          <p class="note">Abra o `.scad` baixado no BGSD para continuar refinando medidas, tampas, dividers, labels e grupos de impressao.</p>
+          <section id="fidelityView" class="fidelity-view" hidden>
+            <div class="fidelity-metrics">
+              <div class="metric"><span>F-score</span><strong id="fidelityScore">-</strong></div>
+              <div class="metric"><span>Erro medio</span><strong id="fidelityMean">-</strong></div>
+              <div class="metric"><span>P95</span><strong id="fidelityP95">-</strong></div>
+              <div class="metric"><span>Classificacao</span><strong id="fidelityRating">-</strong></div>
+            </div>
+            <img id="fidelityPreview" class="fidelity-preview" alt="Comparacao do STL original, reconstrucao e sobreposicao" hidden>
+          </section>
+          <p class="note">Extraia o pacote e abra o `.scad` no BGSD para continuar refinando o projeto.</p>
         </div>
       </section>
     </section>
   </main>
 
+  <dialog id="renderDialog" class="render-dialog" data-state="rendering" aria-labelledby="renderTitle">
+    <div class="render-modal">
+      <div class="render-heading">
+        <div class="render-spinner" aria-hidden="true"></div>
+        <div>
+          <h2 id="renderTitle">Renderizando STL</h2>
+          <p id="renderPhase" class="render-phase" aria-live="polite">Preparando o OpenSCAD...</p>
+        </div>
+      </div>
+      <p id="renderFile" class="render-file"></p>
+      <div class="render-progress" role="progressbar" aria-label="Progresso estimado" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="renderProgressBar" class="render-progress-bar"></div>
+      </div>
+      <div class="render-times">
+        <div class="render-time"><span>Decorrido</span><strong id="renderElapsed">00:00</strong></div>
+        <div class="render-time"><span>Restante estimado</span><strong id="renderRemaining">Calculando</strong></div>
+        <div class="render-time"><span>Previsao</span><strong id="renderEta">--:--</strong></div>
+      </div>
+      <p id="renderLimit" class="render-limit">Limite do servidor: 10:00</p>
+      <div class="render-actions">
+        <button id="closeRenderDialog" class="secondary" hidden>Fechar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="lib/bit-library.embedded.js"></script>
   <script>
     "use strict";
 
     const state = {
       files: [],
+      gamePieces: [],
+      gameSourceName: "",
+      gameSource3mf: null,
       nextId: 1,
+      fidelityPreviewUrl: null,
       settings: {
         includeFile: defaultIncludePath(),
         clearance: 0,
@@ -691,6 +1012,7 @@
         lidType: "LID_CAP",
         boxLabelText: "",
         lidLabelText: "",
+        lidLabelOrientation: "HORIZONTAL",
         labelPlacement: "CENTER",
         labelSize: "AUTO",
         labelDepth: 0.2,
@@ -703,6 +1025,7 @@
         noLid: true,
         autoDimensions: true,
         detectComponents: true,
+        inferGeometry: true,
         colorize: true,
         featureLabels: false,
         cutoutFront: false,
@@ -717,6 +1040,34 @@
       dropzone: document.getElementById("dropzone"),
       fileInput: document.getElementById("fileInput"),
       pickFiles: document.getElementById("pickFiles"),
+      pick3mf: document.getElementById("pick3mf"),
+      exportGamePieces: document.getElementById("exportGamePieces"),
+      addGamePiece: document.getElementById("addGamePiece"),
+      game3mfInput: document.getElementById("game3mfInput"),
+      createGameInsert: document.getElementById("createGameInsert"),
+      gameName: document.getElementById("gameName"),
+      gameBoxX: document.getElementById("gameBoxX"),
+      gameBoxY: document.getElementById("gameBoxY"),
+      gameBoxZ: document.getElementById("gameBoxZ"),
+      gameOuterClearance: document.getElementById("gameOuterClearance"),
+      gameFillBox: document.getElementById("gameFillBox"),
+      gameProjectStatus: document.getElementById("gameProjectStatus"),
+      gameServerLink: document.getElementById("gameServerLink"),
+      serverNotice: document.getElementById("serverNotice"),
+      gameInventory: document.getElementById("gameInventory"),
+      gamePieceRows: document.getElementById("gamePieceRows"),
+      gameCompartments: document.getElementById("gameCompartments"),
+      gameCompartmentRows: document.getElementById("gameCompartmentRows"),
+      gamePlanErrors: document.getElementById("gamePlanErrors"),
+      verifyFidelity: document.getElementById("verifyFidelity"),
+      openFidelity: document.getElementById("openFidelity"),
+      fidelityInput: document.getElementById("fidelityInput"),
+      fidelityView: document.getElementById("fidelityView"),
+      fidelityScore: document.getElementById("fidelityScore"),
+      fidelityMean: document.getElementById("fidelityMean"),
+      fidelityP95: document.getElementById("fidelityP95"),
+      fidelityRating: document.getElementById("fidelityRating"),
+      fidelityPreview: document.getElementById("fidelityPreview"),
       includeFile: document.getElementById("includeFile"),
       clearance: document.getElementById("clearance"),
       wall: document.getElementById("wall"),
@@ -729,6 +1080,7 @@
       lidType: document.getElementById("lidType"),
       boxLabelText: document.getElementById("boxLabelText"),
       lidLabelText: document.getElementById("lidLabelText"),
+      lidLabelOrientation: document.getElementById("lidLabelOrientation"),
       labelPlacement: document.getElementById("labelPlacement"),
       labelSize: document.getElementById("labelSize"),
       labelDepth: document.getElementById("labelDepth"),
@@ -741,6 +1093,7 @@
       noLid: document.getElementById("noLid"),
       autoDimensions: document.getElementById("autoDimensions"),
       detectComponents: document.getElementById("detectComponents"),
+      inferGeometry: document.getElementById("inferGeometry"),
       colorize: document.getElementById("colorize"),
       featureLabels: document.getElementById("featureLabels"),
       cutoutFront: document.getElementById("cutoutFront"),
@@ -756,19 +1109,71 @@
       emptyState: document.getElementById("emptyState"),
       tableWrap: document.getElementById("tableWrap"),
       fileRows: document.getElementById("fileRows"),
+      stlCompartments: document.getElementById("stlCompartments"),
+      stlCompartmentRows: document.getElementById("stlCompartmentRows"),
       previewSelect: document.getElementById("previewSelect"),
       combinedName: document.getElementById("combinedName"),
       scadPreview: document.getElementById("scadPreview"),
+      generateStl: document.getElementById("generateStl"),
       downloadCombined: document.getElementById("downloadCombined"),
       downloadEach: document.getElementById("downloadEach"),
       clearFiles: document.getElementById("clearFiles"),
+      renderDialog: document.getElementById("renderDialog"),
+      renderTitle: document.getElementById("renderTitle"),
+      renderPhase: document.getElementById("renderPhase"),
+      renderFile: document.getElementById("renderFile"),
+      renderProgress: document.querySelector(".render-progress"),
+      renderProgressBar: document.getElementById("renderProgressBar"),
+      renderElapsed: document.getElementById("renderElapsed"),
+      renderRemaining: document.getElementById("renderRemaining"),
+      renderEta: document.getElementById("renderEta"),
+      renderLimit: document.getElementById("renderLimit"),
+      closeRenderDialog: document.getElementById("closeRenderDialog"),
+    };
+
+    const renderUi = {
+      running: false,
+      timer: null,
+      startedAt: 0,
+      estimateMs: 0,
+      timeoutMs: 600000,
+      historyKey: "",
+      task: "stl",
     };
 
     const numericSettingIds = ["clearance", "wall", "bottom", "heightExtra", "scale", "tolerance", "labelDepth", "cutoutHeightPct", "cutoutDepthPct", "cutoutWidthPct"];
-    const textSettingIds = ["includeFile", "shape", "printTypes", "lidType", "boxLabelText", "lidLabelText", "labelPlacement", "labelSize", "cutoutMode", "cutoutType"];
-    const toggleSettingIds = ["featureEnabled", "noLid", "autoDimensions", "detectComponents", "colorize", "featureLabels", "cutoutFront", "cutoutBack", "cutoutLeft", "cutoutRight", "cutoutBottom"];
+    const textSettingIds = ["includeFile", "shape", "printTypes", "lidType", "boxLabelText", "lidLabelText", "lidLabelOrientation", "labelPlacement", "labelSize", "cutoutMode", "cutoutType"];
+    const toggleSettingIds = ["featureEnabled", "noLid", "autoDimensions", "detectComponents", "inferGeometry", "colorize", "featureLabels", "cutoutFront", "cutoutBack", "cutoutLeft", "cutoutRight", "cutoutBottom"];
+
+    async function localApiAvailable() {
+      try {
+        const response = await fetch("/api/health");
+        const available = response.ok && (await response.json()).ok === true;
+        els.serverNotice.hidden = available;
+        return available;
+      } catch {
+        els.serverNotice.hidden = false;
+        return false;
+      }
+    }
+
+    localApiAvailable();
 
     els.pickFiles.addEventListener("click", () => els.fileInput.click());
+    els.pick3mf.addEventListener("click", () => els.game3mfInput.click());
+    els.addGamePiece.addEventListener("click", () => {
+      state.gamePieces.push({ id: `manual:${Date.now()}`, name: "Nova peca", size: [50, 50, 10], quantity: 1 });
+      if (!state.gameSourceName) state.gameSourceName = "Inventario manual";
+      els.gameInventory.hidden = false;
+      els.createGameInsert.disabled = false;
+      renderGamePieces();
+    });
+    els.game3mfInput.addEventListener("change", () => importGame3mf(els.game3mfInput.files[0]));
+    els.exportGamePieces.addEventListener("click", exportGamePieces);
+    els.createGameInsert.addEventListener("click", createGameInsert);
+    els.verifyFidelity.addEventListener("click", verifyFidelity);
+    els.openFidelity.addEventListener("click", () => els.fidelityInput.click());
+    els.fidelityInput.addEventListener("change", () => loadFidelityFiles([...els.fidelityInput.files]));
     els.dropzone.addEventListener("click", (event) => {
       if (event.target === els.pickFiles) return;
       els.fileInput.click();
@@ -813,20 +1218,227 @@
     for (const id of toggleSettingIds) {
       els[id].addEventListener("change", () => {
         state.settings[id] = els[id].checked;
-        if ((id === "autoDimensions" || id === "detectComponents") && state.settings.autoDimensions) recomputeAutoDimensions();
+        if ((id === "autoDimensions" || id === "detectComponents" || id === "inferGeometry") && state.settings.autoDimensions) recomputeAutoDimensions();
         render();
       });
     }
 
-    els.previewSelect.addEventListener("change", renderPreview);
+    els.previewSelect.addEventListener("change", () => {
+      renderPreview();
+      updateFidelityButton();
+    });
     els.combinedName.addEventListener("input", render);
+    els.generateStl.addEventListener("click", generateStl);
+    els.closeRenderDialog.addEventListener("click", closeRenderModal);
+    els.renderDialog.addEventListener("cancel", (event) => {
+      if (renderUi.running) event.preventDefault();
+    });
     els.downloadCombined.addEventListener("click", downloadCombined);
     els.downloadEach.addEventListener("click", downloadEach);
     els.clearFiles.addEventListener("click", () => {
       state.files = [];
+      state.gamePieces = [];
+      state.gameSourceName = "";
+      state.gameSource3mf = null;
+      els.exportGamePieces.disabled = true;
+      els.gameInventory.hidden = true;
+      els.gameCompartments.hidden = true;
+      els.gameProjectStatus.textContent = "";
+      els.gameServerLink.hidden = true;
+      els.gamePlanErrors.textContent = "";
+      els.createGameInsert.disabled = true;
       els.fileInput.value = "";
+      els.game3mfInput.value = "";
       render();
     });
+
+    async function ensureGameApi() {
+      if (!(await localApiAvailable())) {
+        els.gameServerLink.hidden = false;
+        throw new Error("Esta pagina nao esta conectada ao servidor local. Abra a interface pelo link abaixo e importe o 3MF novamente.");
+      }
+    }
+
+    async function importGame3mf(file) {
+      if (!file) return;
+      if (window.location.protocol === "file:") {
+        els.gameProjectStatus.textContent = "Abra a interface pelo inicializador local para importar 3MF.";
+        els.gameServerLink.hidden = false;
+        return;
+      }
+      els.pick3mf.disabled = true;
+      els.gameServerLink.hidden = true;
+      els.gameProjectStatus.textContent = `Lendo ${file.name}...`;
+      try {
+        await ensureGameApi();
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const response = await fetch("/api/import-3mf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dataBase64: bytesToBase64(bytes) }),
+        });
+        if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`);
+        const result = await response.json();
+        state.gamePieces.push(...result.pieces);
+        state.gameSourceName = file.name;
+        state.gameSource3mf = bytes;
+        els.exportGamePieces.disabled = false;
+        if (els.gameName.value === "Meu jogo") els.gameName.value = file.name.replace(/\.3mf$/i, "");
+        els.gameInventory.hidden = false;
+        els.createGameInsert.disabled = false;
+        els.gamePlanErrors.textContent = "";
+        els.gameProjectStatus.textContent = `${result.pieces.length} peca(s) importada(s).`;
+        renderGamePieces();
+      } catch (error) {
+        els.gameProjectStatus.textContent = `Nao foi possivel importar 3MF: ${error.message}`;
+      } finally {
+        els.pick3mf.disabled = false;
+        els.game3mfInput.value = "";
+      }
+    }
+
+    async function exportGamePieces() {
+      if (!state.gameSource3mf) return;
+      els.exportGamePieces.disabled = true;
+      els.gameProjectStatus.textContent = "Exportando as malhas e posicoes originais...";
+      try {
+        await ensureGameApi();
+        const response = await fetch("/api/export-3mf-stl", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dataBase64: bytesToBase64(state.gameSource3mf) }),
+        });
+        if (response.status === 404) throw new Error("Reinicie a interface local para ativar a exportacao de pecas 3MF.");
+        if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`);
+        const name = slugFileName(state.gameSourceName.replace(/\.3mf$/i, "")) || "pecas";
+        downloadBlob(`${name}-pecas-originais.stl`, await response.blob(), "model/stl");
+        els.gameProjectStatus.textContent = "STL das pecas originais baixado. Criar insert continua sendo uma operacao separada.";
+      } catch (error) {
+        els.gameProjectStatus.textContent = `Nao foi possivel exportar as pecas: ${error.message}`;
+      } finally {
+        els.exportGamePieces.disabled = false;
+      }
+    }
+
+    function renderGamePieces() {
+      els.gamePieceRows.replaceChildren();
+      for (const piece of state.gamePieces) {
+        const row = document.createElement("tr");
+        const name = document.createElement("input");
+        name.value = piece.name;
+        name.addEventListener("input", () => { piece.name = name.value; });
+        const quantity = document.createElement("input");
+        quantity.type = "number";
+        quantity.min = "0";
+        quantity.step = "1";
+        quantity.value = piece.quantity;
+        quantity.addEventListener("input", () => { piece.quantity = Number(quantity.value); });
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "danger";
+        remove.textContent = "Remover";
+        remove.addEventListener("click", () => {
+          state.gamePieces = state.gamePieces.filter((item) => item !== piece);
+          els.createGameInsert.disabled = state.gamePieces.length === 0;
+          els.gameInventory.hidden = state.gamePieces.length === 0;
+          renderGamePieces();
+        });
+        row.append(cell(name), cell(dimNode(piece.size, (axis, value) => {
+          piece.size[axis] = numberOrDefault(value, piece.size[axis]);
+        })), cell(quantity),
+          cell(document.createTextNode("Vertical")), cell(remove));
+        els.gamePieceRows.appendChild(row);
+      }
+    }
+
+    async function createGameInsert() {
+      els.createGameInsert.disabled = true;
+      els.gameServerLink.hidden = true;
+      els.gamePlanErrors.textContent = "";
+      els.gameProjectStatus.textContent = "Organizando compartimentos...";
+      try {
+        await ensureGameApi();
+        const gameBox = [els.gameBoxX, els.gameBoxY, els.gameBoxZ].map((input) => Number(input.value));
+        const outerClearance = Number(els.gameOuterClearance.value);
+        if (!Number.isFinite(outerClearance) || outerClearance < 0)
+          throw new Error("Folga externa invalida.");
+        const box = [gameBox[0] - 2 * outerClearance,
+          gameBox[1] - 2 * outerClearance, gameBox[2] - outerClearance];
+        const response = await fetch("/api/plan-insert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            box,
+            wall: state.settings.wall,
+            floor: state.settings.wall,
+            clearance: state.settings.clearance,
+            compact: !els.gameFillBox.checked,
+            pieces: state.gamePieces,
+          }),
+        });
+        if (!response.ok) throw new Error((await response.text()) || `HTTP ${response.status}`);
+        const plan = await response.json();
+        if (!plan.fits) {
+          els.gamePlanErrors.textContent = `As pecas nao cabem na caixa informada:\n${plan.errors.join("\n")}`;
+          els.gameProjectStatus.textContent = "Revise a caixa ou as quantidades.";
+          return;
+        }
+        const name = sanitizeScadString(els.gameName.value);
+        const bounds = { min: [0, 0, 0], max: plan.box, size: plan.box, triangles: 0,
+          planes: { x: new Map(), y: new Map(), z: new Map() }, facets: [], scale: 1 };
+        const model = {
+          id: String(state.nextId++),
+          fileName: state.gameSourceName,
+          name,
+          plannedInsert: true,
+          bounds,
+          detected: null,
+          wallThickness: plan.wall,
+          bottomThickness: plan.floor,
+          shape: "SQUARE",
+          lidType: state.settings.lidType,
+          featureEnabled: true,
+          noLid: state.settings.noLid,
+          manualDimensions: true,
+          boxSize: plan.box,
+          features: plan.features,
+          compartmentSize: plan.features[0]?.size || [0, 0, 0],
+        };
+        state.files = [model];
+        render();
+        renderGameCompartments(model);
+        els.gameProjectStatus.textContent = `Insert ${plan.box.join(" x ")} mm criado para ${plan.pieceCount} peca(s), em ${plan.features.length} compartimento(s).`;
+        els.previewSelect.value = model.id;
+        renderPreview();
+      } catch (error) {
+        els.gameProjectStatus.textContent = `Nao foi possivel criar o insert: ${error.message}`;
+      } finally {
+        els.createGameInsert.disabled = state.gamePieces.length === 0;
+      }
+    }
+
+    function renderGameCompartments(model) {
+      els.gameCompartmentRows.replaceChildren();
+      els.gameCompartments.hidden = false;
+      for (const feature of model.features) {
+        const row = document.createElement("tr");
+        row.append(
+          cell(inputNode(feature.name, (value) => { feature.name = sanitizeScadString(value); renderPreview(); })),
+          cell(dimNode(feature.size, (axis, value) => {
+            feature.size[axis] = numberOrDefault(value, feature.size[axis]);
+            updatePlannedModelValidity(model);
+            renderPreview();
+          })),
+          cell(dimNode(feature.position, (axis, value) => {
+            if (axis > 1) return;
+            feature.position[axis] = numberOrDefault(value, feature.position[axis]);
+            updatePlannedModelValidity(model);
+            renderPreview();
+          })),
+        );
+        els.gameCompartmentRows.appendChild(row);
+      }
+    }
 
     async function addFiles(files) {
       const stls = files.filter((file) => /\.stl$/i.test(file.name));
@@ -841,12 +1453,45 @@
           const buffer = await file.arrayBuffer();
           const bounds = readStlBounds(buffer, state.settings.scale);
           const model = createModel(file.name, bounds);
+          model.sourceStl = new Uint8Array(buffer.slice(0));
           state.files.push(model);
         } catch (error) {
           setStatus(`Erro em ${file.name}: ${error.message}`);
         }
       }
       render();
+    }
+
+    async function loadFidelityFiles(files) {
+      const reportFile = files.find((file) => /\.json$/i.test(file.name));
+      const previewFile = files.find((file) => /\.png$/i.test(file.name));
+      if (!reportFile) {
+        setStatus("Selecione um arquivo .fidelity.json.");
+        return;
+      }
+      try {
+        const report = JSON.parse(await reportFile.text());
+        const previewUrl = previewFile ? URL.createObjectURL(previewFile) : null;
+        displayFidelity(report, previewUrl, Boolean(previewUrl));
+        setStatus(`Fidelidade carregada: ${reportFile.name}`);
+      } catch (error) {
+        setStatus(`Relatorio invalido: ${error.message}`);
+      } finally {
+        els.fidelityInput.value = "";
+      }
+    }
+
+    function displayFidelity(report, previewUrl, revokePreview = false) {
+      const metrics = report.metrics || {};
+      els.fidelityScore.textContent = `${numberOrDefault(metrics.fScorePct, 0).toFixed(2)}%`;
+      els.fidelityMean.textContent = `${numberOrDefault(metrics.meanSurfaceDistanceMm, 0).toFixed(3)} mm`;
+      els.fidelityP95.textContent = `${numberOrDefault(metrics.p95SurfaceDistanceMm, 0).toFixed(3)} mm`;
+      els.fidelityRating.textContent = report.rating || "-";
+      els.fidelityView.hidden = false;
+      if (state.fidelityPreviewUrl) URL.revokeObjectURL(state.fidelityPreviewUrl);
+      state.fidelityPreviewUrl = revokePreview ? previewUrl : null;
+      els.fidelityPreview.hidden = !previewUrl;
+      if (previewUrl) els.fidelityPreview.src = previewUrl;
     }
 
     function readStlBounds(arrayBuffer, scale) {
@@ -866,6 +1511,7 @@
         vertices: 0,
         triangles: 0,
         planes: { x: new Map(), y: new Map(), z: new Map() },
+        facets: [],
       };
     }
 
@@ -893,6 +1539,12 @@
 
     function includeTriangle(bounds, pts) {
       const area = triangleArea(pts[0], pts[1], pts[2]);
+      bounds.facets.push({
+        points: pts.map((point) => [...point]),
+        normal: triangleNormal(pts[0], pts[1], pts[2]),
+        area,
+        centroid: [0, 1, 2].map((axis) => (pts[0][axis] + pts[1][axis] + pts[2][axis]) / 3),
+      });
       for (const [axis, index] of [["x", 0], ["y", 1], ["z", 2]]) {
         const values = pts.map((pt) => pt[index]);
         if (Math.max(...values) - Math.min(...values) < 0.02) {
@@ -901,6 +1553,18 @@
           planes.set(key, (planes.get(key) || 0) + area);
         }
       }
+    }
+
+    function triangleNormal(a, b, c) {
+      const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+      const v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+      const cross = [
+        u[1] * v[2] - u[2] * v[1],
+        u[2] * v[0] - u[0] * v[2],
+        u[0] * v[1] - u[1] * v[0],
+      ];
+      const length = Math.hypot(...cross);
+      return length > 0 ? cross.map((value) => value / length) : [0, 0, 0];
     }
 
     function readBinaryStlBounds(view, triangles, scale) {
@@ -961,6 +1625,7 @@
       bounds.scale = state.settings.scale;
       const detected = state.settings.detectComponents ? detectCompartments(bounds) : null;
       const wallThickness = round(detected?.wallThickness || state.settings.wall);
+      const bottomThickness = round(detected?.bottomThickness || state.settings.bottom);
       const features = buildDetectedFeatures(fileName.replace(/\.stl$/i, ""), bounds, detected, wallThickness);
       const model = {
         id: String(state.nextId++),
@@ -969,6 +1634,7 @@
         bounds,
         detected,
         wallThickness,
+        bottomThickness,
         shape: state.settings.shape,
         lidType: state.settings.lidType,
         featureEnabled: state.settings.featureEnabled,
@@ -982,8 +1648,10 @@
     }
 
     function updateAutoDimensions(model) {
+      if (model.plannedInsert) return;
       model.detected = state.settings.detectComponents ? detectCompartments(model.bounds) : null;
       model.wallThickness = round(model.detected?.wallThickness || state.settings.wall);
+      model.bottomThickness = round(model.detected?.bottomThickness || state.settings.bottom);
       model.boxSize = model.bounds.size.map(round);
       model.features = buildDetectedFeatures(model.name, model.bounds, model.detected, model.wallThickness);
       model.compartmentSize = model.features[0]?.size || [0, 0, 0];
@@ -991,11 +1659,22 @@
 
     function rescaleAll() {
       for (const model of state.files) {
+        if (model.plannedInsert) continue;
         const originalScale = model.bounds.scale || 1;
         const factor = state.settings.scale / originalScale;
         model.bounds.min = model.bounds.min.map((value) => round(value * factor));
         model.bounds.max = model.bounds.max.map((value) => round(value * factor));
         model.bounds.size = model.bounds.size.map((value) => round(value * factor));
+        for (const axis of ["x", "y", "z"]) {
+          model.bounds.planes[axis] = new Map(
+            [...model.bounds.planes[axis]].map(([coord, area]) => [roundTo(coord * factor, 2), area * factor * factor]),
+          );
+        }
+        for (const facet of model.bounds.facets) {
+          facet.points = facet.points.map((point) => point.map((value) => round(value * factor)));
+          facet.centroid = facet.centroid.map((value) => round(value * factor));
+          facet.area *= factor * factor;
+        }
         model.bounds.scale = state.settings.scale;
         model.manualDimensions = false;
       }
@@ -1015,15 +1694,67 @@
       syncControls();
       renderMetrics();
       renderRows();
+      renderStlCompartments();
       renderPreviewOptions();
       renderPreview();
       const hasFiles = state.files.length > 0;
+      els.generateStl.disabled = !hasFiles;
+      updateFidelityButton();
       els.downloadCombined.disabled = !hasFiles;
       els.downloadEach.disabled = !hasFiles;
       els.clearFiles.disabled = !hasFiles;
       els.emptyState.hidden = hasFiles;
       els.tableWrap.hidden = !hasFiles;
+      if (state.files[0]?.plannedInsert) updatePlannedModelValidity(state.files[0]);
       setStatus(hasFiles ? `${state.files.length} arquivo(s) pronto(s).` : "Nenhum STL carregado.");
+    }
+
+    function updatePlannedModelValidity(model) {
+      const wall = model.wallThickness;
+      const limit = [model.boxSize[0] - 2 * wall, model.boxSize[1] - 2 * wall,
+        model.boxSize[2] - wall];
+      const errors = [];
+      for (const feature of model.features) {
+        if (feature.size.some((value) => !Number.isFinite(value) || value <= 0) ||
+            feature.position.some((value) => !Number.isFinite(value) || value < 0) ||
+            feature.position[0] + feature.size[0] > limit[0] + 0.01 ||
+            feature.position[1] + feature.size[1] > limit[1] + 0.01 ||
+            feature.size[2] > limit[2] + 0.01 ||
+            feature.size[2] + 0.01 < feature.requiredHeight) {
+          errors.push(`${feature.name}: fora da caixa ou altura insuficiente.`);
+        }
+      }
+      for (let first = 0; first < model.features.length; first++) {
+        for (let second = first + 1; second < model.features.length; second++) {
+          const a = model.features[first];
+          const b = model.features[second];
+          const overlapX = Math.min(a.position[0] + a.size[0], b.position[0] + b.size[0]) -
+            Math.max(a.position[0], b.position[0]);
+          const overlapY = Math.min(a.position[1] + a.size[1], b.position[1] + b.size[1]) -
+            Math.max(a.position[1], b.position[1]);
+          if (overlapX > -wall + 0.01 && overlapY > -wall + 0.01) {
+            errors.push(`${a.name} e ${b.name}: falta espaco para a parede.`);
+          }
+        }
+      }
+      els.gamePlanErrors.textContent = errors.join("\n");
+      const valid = errors.length === 0;
+      els.generateStl.disabled = !valid;
+      els.downloadCombined.disabled = !valid;
+      els.downloadEach.disabled = !valid;
+      return valid;
+    }
+
+    function selectedFidelityModel() {
+      if (state.files.length === 1) return state.files[0];
+      if (els.previewSelect.value === "combined") return null;
+      return state.files.find((model) => model.id === els.previewSelect.value) || null;
+    }
+
+    function updateFidelityButton() {
+      const model = selectedFidelityModel();
+      els.verifyFidelity.disabled = !model?.sourceStl || renderUi.running;
+      els.verifyFidelity.title = model ? `Comparar ${model.name} com o SCAD atual` : "Selecione um modelo individual em Visualizar";
     }
 
     function syncControls() {
@@ -1054,9 +1785,12 @@
           cell(dimNode(model.boxSize, (axis, value) => {
             model.boxSize[axis] = numberOrDefault(value, model.boxSize[axis]);
             model.manualDimensions = true;
+            if (model.plannedInsert) updatePlannedModelValidity(model);
             renderPreview();
           })),
-          cell(dimNode(model.compartmentSize, (axis, value) => {
+          cell(model.plannedInsert || model.features.length > 1
+            ? document.createTextNode(`${model.features.length} compartimentos`)
+            : dimNode(model.compartmentSize, (axis, value) => {
             model.compartmentSize[axis] = numberOrDefault(value, model.compartmentSize[axis]);
             for (const feature of model.features || []) feature.size[axis] = model.compartmentSize[axis];
             model.manualDimensions = true;
@@ -1072,6 +1806,32 @@
       }
     }
 
+    function renderStlCompartments() {
+      els.stlCompartmentRows.replaceChildren();
+      for (const model of state.files) {
+        if (model.plannedInsert || model.features.length < 2) continue;
+        for (const feature of model.features) {
+          const floor = feature.floorTopZ == null
+            ? "Nao detectado" : `${round(feature.floorTopZ - model.bounds.min[2])} mm`;
+          const row = document.createElement("tr");
+          row.append(cell(document.createTextNode(model.fileName)),
+            cell(document.createTextNode(feature.name)),
+            cell(document.createTextNode(floor)),
+            cell(dimNode(feature.size, (axis, value) => {
+              const dimension = numberOrDefault(value, feature.size[axis]);
+              feature.size[axis] = axis === 2
+                ? Math.min(Math.max(0.1, model.boxSize[2] - model.wallThickness), Math.max(0.1, dimension))
+                : Math.max(0.1, dimension);
+              model.compartmentSize = [...model.features[0].size];
+              model.manualDimensions = true;
+              renderPreview();
+            })));
+          els.stlCompartmentRows.appendChild(row);
+        }
+      }
+      els.stlCompartments.hidden = els.stlCompartmentRows.childElementCount === 0;
+    }
+
     function fileNameNode(model) {
       const wrap = document.createElement("div");
       wrap.className = "file-name";
@@ -1079,7 +1839,9 @@
       strong.textContent = model.fileName;
       const meta = document.createElement("span");
       const count = model.features?.length || 1;
-      meta.textContent = `${formatInteger(model.bounds.triangles)} triangulos, ${count} componente(s)`;
+      meta.textContent = model.plannedInsert
+        ? `${count} compartimento(s) planejados`
+        : `${formatInteger(model.bounds.triangles)} triangulos, ${count} componente(s)`;
       wrap.append(strong, meta);
       return wrap;
     }
@@ -1233,7 +1995,7 @@
       return quoteScadString(value);
     }
 
-    function renderLabelLines(lines, indent, text, name) {
+    function renderLabelLines(lines, indent, text, name, rotation = null) {
       if (!String(text || "").trim()) return;
       lines.push(`${indent}[ LABEL,`);
       lines.push(`${indent}    [ NAME, ${quoteScadString(name)} ],`);
@@ -1241,6 +2003,7 @@
       lines.push(`${indent}    [ LBL_PLACEMENT, ${formatScadValue(state.settings.labelPlacement)} ],`);
       lines.push(`${indent}    [ LBL_SIZE, ${formatScadValue(state.settings.labelSize)} ],`);
       lines.push(`${indent}    [ LBL_DEPTH, ${formatScadValue(state.settings.labelDepth)} ],`);
+      if (rotation !== null) lines.push(`${indent}    [ ROTATION, ${formatScadValue(rotation)} ],`);
       lines.push(`${indent}],`);
     }
 
@@ -1259,25 +2022,28 @@
       ];
     }
 
-    function renderCutoutLines(lines, indent, featureIndex) {
-      const sides = cutoutSidesForFeature(featureIndex);
+    function renderCutoutLines(lines, indent, featureIndex, feature) {
+      const inferred = state.settings.inferGeometry && state.settings.cutoutMode === "none" && feature.cutoutSides?.some(Boolean)
+        ? feature.cutoutInference
+        : null;
+      const sides = inferred ? feature.cutoutSides : cutoutSidesForFeature(featureIndex);
       if (!sides.some(Boolean) && !state.settings.cutoutBottom) return;
       if (sides.some(Boolean)) {
         lines.push(`${indent}[ FTR_CUTOUT_SIDES_4B, ${vec(sides)} ],`);
-        lines.push(`${indent}[ FTR_CUTOUT_TYPE, ${formatScadValue(state.settings.cutoutType)} ],`);
-        lines.push(`${indent}[ FTR_CUTOUT_HEIGHT_PCT, ${formatScadValue(state.settings.cutoutHeightPct)} ],`);
-        lines.push(`${indent}[ FTR_CUTOUT_DEPTH_PCT, ${formatScadValue(state.settings.cutoutDepthPct)} ],`);
-        lines.push(`${indent}[ FTR_CUTOUT_WIDTH_PCT, ${formatScadValue(state.settings.cutoutWidthPct)} ],`);
+        lines.push(`${indent}[ FTR_CUTOUT_TYPE, ${formatScadValue(inferred?.type || state.settings.cutoutType)} ],`);
+        lines.push(`${indent}[ FTR_CUTOUT_HEIGHT_PCT, ${formatScadValue(inferred?.heightPct ?? state.settings.cutoutHeightPct)} ],`);
+        lines.push(`${indent}[ FTR_CUTOUT_DEPTH_PCT, ${formatScadValue(inferred?.depthPct || state.settings.cutoutDepthPct)} ],`);
+        lines.push(`${indent}[ FTR_CUTOUT_WIDTH_PCT, ${formatScadValue(inferred?.widthPct || state.settings.cutoutWidthPct)} ],`);
       }
       if (state.settings.cutoutBottom) {
         lines.push(`${indent}[ FTR_CUTOUT_BOTTOM_B, true ],`);
       }
     }
 
-    function renderScad(models) {
+    function renderScad(models, includeFile = state.settings.includeFile || defaultIncludePath()) {
       const lines = [
         "// BGSD",
-        `include <${state.settings.includeFile || defaultIncludePath()}>;`,
+        `include <${includeFile}>;`,
         "data = [",
       ];
 
@@ -1292,10 +2058,24 @@
       }
 
       for (const model of models) {
-        lines.push(`    // Source STL: ${model.fileName}`);
-        lines.push(`    // STL bbox min ${vec(model.bounds.min)} max ${vec(model.bounds.max)} size ${vec(model.bounds.size)}`);
+        if (model.plannedInsert) {
+          lines.push(`    // Game inventory source: ${model.fileName}`);
+          lines.push(`    // Internal game box: ${vec(model.boxSize)} mm`);
+        } else {
+          lines.push(`    // Source STL: ${model.fileName}`);
+          lines.push(`    // STL bbox min ${vec(model.bounds.min)} max ${vec(model.bounds.max)} size ${vec(model.bounds.size)}`);
+        }
         if (model.detected?.detected) {
           lines.push(`    // Detected compartments: ${model.detected.componentCount}; wall thickness: ${round(model.wallThickness)}mm`);
+        }
+        if (!model.plannedInsert) lines.push(`    // Estimated bottom thickness: ${round(model.bottomThickness || state.settings.bottom)}mm`);
+        const detectedCutouts = (model.detected?.cutouts || []).filter((cutout) => cutout.detected);
+        if (detectedCutouts.length) {
+          lines.push(`    // Inferred side cutouts: ${detectedCutouts.map((cutout) => `${cutout.side} (${cutout.confidence})`).join(", ")}`);
+        }
+        const profileCuts = model.detected?.profileCuts || [];
+        if (profileCuts.length) {
+          lines.push(`    // Inferred external profile cuts: ${profileCuts.map((cut) => `${cut.corner} ${vec(cut.size)}`).join(", ")}`);
         }
         lines.push("    [ OBJECT_BOX,");
         lines.push(`        [ NAME, "${escapeScadString(model.name)}" ],`);
@@ -1305,20 +2085,25 @@
         if (!model.noLid) {
           lines.push("        [ BOX_LID,");
           lines.push(`            [ LID_TYPE, ${model.lidType || state.settings.lidType} ],`);
-          renderLabelLines(lines, "            ", state.settings.lidLabelText, "lid label");
+          const lidLabelRotation = state.settings.lidLabelOrientation === "VERTICAL" ? 90 : 0;
+          renderLabelLines(lines, "            ", state.settings.lidLabelText, "lid label", lidLabelRotation);
           lines.push("        ],");
         }
         renderLabelLines(lines, "        ", state.settings.boxLabelText, `${model.name} label`);
         if (model.featureEnabled) {
           for (let featureIndex = 0; featureIndex < (model.features || []).length; featureIndex++) {
             const feature = model.features[featureIndex];
+            if (feature.floorTopZ != null) {
+              lines.push(`        // Measured cavity floor: ${round(feature.floorTopZ - model.bounds.min[2])}mm above STL base`);
+            }
             lines.push("        [ BOX_FEATURE,");
             lines.push(`            [ NAME, "${escapeScadString(feature.name)}" ],`);
             lines.push(`            [ FTR_COMPARTMENT_SIZE_XYZ, ${vec(feature.size)} ],`);
             lines.push("            [ FTR_NUM_COMPARTMENTS_XY, [1, 1] ],");
-            lines.push(`            [ FTR_SHAPE, ${model.shape || "SQUARE"} ],`);
+            const inferredShape = state.settings.inferGeometry ? feature.shape?.shape : null;
+            lines.push(`            [ FTR_SHAPE, ${inferredShape || model.shape || "SQUARE"} ],`);
             lines.push(`            [ POSITION_XY, ${vec(feature.position)} ],`);
-            renderCutoutLines(lines, "            ", featureIndex);
+            if (!model.plannedInsert) renderCutoutLines(lines, "            ", featureIndex, feature);
             if (state.settings.featureLabels) {
               renderLabelLines(lines, "            ", feature.name.replace(/\s+cavity/i, ""), `${feature.name} label`);
             }
@@ -1329,26 +2114,355 @@
       }
 
       lines.push("];");
-      lines.push("Make(data);");
+      const profileCuts = models.length === 1 ? (models[0].detected?.profileCuts || []) : [];
+      if (profileCuts.length) {
+        lines.push("difference() {");
+        lines.push("    Make(data);");
+        for (const cut of profileCuts) {
+          lines.push(`    // ${cut.corner} external step`);
+          lines.push(`    translate([${round(cut.min[0])}, ${round(cut.min[1])}, -0.05]) cube([${round(cut.size[0] + 0.05)}, ${round(cut.size[1] + 0.05)}, ${round(models[0].boxSize[2] + 0.1)}]);`);
+        }
+        lines.push("}");
+      } else {
+        lines.push("Make(data);");
+      }
       lines.push("");
       return lines.join("\n");
     }
 
-    function downloadCombined() {
+    async function downloadCombined() {
       if (state.files.length === 0) return;
       const fileName = normalizedScadName(els.combinedName.value || "all-inserts.scad");
-      downloadText(fileName, renderScad(state.files));
+      await downloadScadPackage(fileName.replace(/\.scad$/i, ".zip"), [
+        { name: fileName, text: renderScad(state.files, "boardgame_insert_toolkit_lib.4.scad") },
+      ]);
     }
 
-    function downloadEach() {
-      for (const model of state.files) {
-        downloadText(`${slugFileName(model.name || model.fileName)}.scad`, renderScad([model]));
+    function formatRenderDuration(milliseconds) {
+      const totalSeconds = Math.max(0, Math.round(milliseconds / 1000));
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function renderHistoryKey(models, task = "stl") {
+      const includesLid = state.settings.printTypes !== "BOX" && models.some((model) => !model.noLid);
+      const mode = includesLid ? "lid" : "box";
+      return `${task}:${mode}:${state.settings.printTypes}:${Math.min(models.length, 5)}`;
+    }
+
+    function estimateRenderDuration(models, task = "stl") {
+      const key = renderHistoryKey(models, task);
+      try {
+        const history = JSON.parse(localStorage.getItem("stl-bgsd-render-history") || "{}");
+        if (Number.isFinite(history[key]) && history[key] >= 1000) return { key, duration: history[key] };
+      } catch {}
+
+      const includesLid = state.settings.printTypes !== "BOX" && models.some((model) => !model.noLid);
+      const base = task === "fidelity"
+        ? (includesLid ? 300000 : 90000)
+        : (includesLid ? 240000 : 45000);
+      return { key, duration: Math.min(540000, base * (1 + Math.max(0, models.length - 1) * 0.35)) };
+    }
+
+    function rememberRenderDuration(key, duration) {
+      try {
+        const storageKey = "stl-bgsd-render-history";
+        const history = JSON.parse(localStorage.getItem(storageKey) || "{}");
+        const previous = Number(history[key]);
+        history[key] = Number.isFinite(previous) ? Math.round(previous * 0.4 + duration * 0.6) : Math.round(duration);
+        localStorage.setItem(storageKey, JSON.stringify(history));
+      } catch {}
+    }
+
+    function updateRenderModal() {
+      if (!renderUi.running) return;
+      const elapsed = Date.now() - renderUi.startedAt;
+      const ratio = elapsed / Math.max(1000, renderUi.estimateMs);
+      const progress = ratio <= 1
+        ? Math.max(3, Math.round(ratio * 85))
+        : Math.min(95, Math.round(85 + Math.log2(Math.max(1, ratio)) * 6));
+      els.renderElapsed.textContent = formatRenderDuration(elapsed);
+      els.renderRemaining.textContent = elapsed < renderUi.estimateMs
+        ? `~ ${formatRenderDuration(renderUi.estimateMs - elapsed)}`
+        : "Finalizando";
+      els.renderProgressBar.style.width = `${progress}%`;
+      els.renderProgress.setAttribute("aria-valuenow", String(progress));
+      if (elapsed >= renderUi.estimateMs) els.renderPhase.textContent = "Finalizando a geometria no OpenSCAD...";
+    }
+
+    function startRenderModal(fileName, models, task = "stl") {
+      const estimate = estimateRenderDuration(models, task);
+      renderUi.running = true;
+      renderUi.startedAt = Date.now();
+      renderUi.estimateMs = estimate.duration;
+      renderUi.historyKey = estimate.key;
+      renderUi.task = task;
+      els.renderDialog.dataset.state = "rendering";
+      els.renderTitle.textContent = task === "fidelity" ? "Verificando fidelidade" : "Renderizando STL";
+      els.renderPhase.textContent = "Preparando o OpenSCAD...";
+      els.renderFile.textContent = fileName;
+      els.renderElapsed.textContent = "00:00";
+      els.renderRemaining.textContent = `~ ${formatRenderDuration(estimate.duration)}`;
+      els.renderEta.textContent = new Date(Date.now() + estimate.duration).toLocaleTimeString("pt-BR", {
+        hour: "2-digit", minute: "2-digit", second: "2-digit",
+      });
+      els.renderLimit.textContent = `Limite do servidor: ${formatRenderDuration(renderUi.timeoutMs)}`;
+      els.renderProgressBar.style.width = "3%";
+      els.renderProgress.setAttribute("aria-valuenow", "3");
+      els.closeRenderDialog.hidden = true;
+      if (!els.renderDialog.open) {
+        if (typeof els.renderDialog.showModal === "function") els.renderDialog.showModal();
+        else els.renderDialog.setAttribute("open", "");
+      }
+      clearInterval(renderUi.timer);
+      renderUi.timer = setInterval(updateRenderModal, 500);
+    }
+
+    async function loadRenderTimeout() {
+      try {
+        const response = await fetch("/api/health");
+        if (!response.ok) return;
+        const health = await response.json();
+        if (Number.isFinite(health.renderTimeoutMs)) renderUi.timeoutMs = health.renderTimeoutMs;
+        els.renderLimit.textContent = `Limite do servidor: ${formatRenderDuration(renderUi.timeoutMs)}`;
+      } catch {}
+    }
+
+    function finishRenderModal(success, message) {
+      const duration = Date.now() - renderUi.startedAt;
+      renderUi.running = false;
+      clearInterval(renderUi.timer);
+      renderUi.timer = null;
+      els.renderDialog.dataset.state = success ? "success" : "error";
+      els.renderTitle.textContent = success
+        ? (renderUi.task === "fidelity" ? "Fidelidade concluida" : "STL concluido")
+        : (renderUi.task === "fidelity" ? "Verificacao interrompida" : "Renderizacao interrompida");
+      els.renderPhase.textContent = message;
+      els.renderElapsed.textContent = formatRenderDuration(duration);
+      els.renderRemaining.textContent = success ? "00:00" : "--:--";
+      els.renderProgressBar.style.width = success ? "100%" : els.renderProgressBar.style.width;
+      els.renderProgress.setAttribute("aria-valuenow", success ? "100" : els.renderProgress.getAttribute("aria-valuenow"));
+      if (success) {
+        rememberRenderDuration(renderUi.historyKey, duration);
+        setTimeout(closeRenderModal, 1100);
+      } else {
+        els.closeRenderDialog.hidden = false;
       }
     }
 
-    function downloadText(fileName, text) {
-      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
+    function closeRenderModal() {
+      if (renderUi.running) return;
+      if (els.renderDialog.open && typeof els.renderDialog.close === "function") els.renderDialog.close();
+      else els.renderDialog.removeAttribute("open");
+    }
+
+    function bytesToBase64(bytes) {
+      const chunkSize = 0x8000;
+      let binary = "";
+      for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+      }
+      return btoa(binary);
+    }
+
+    async function verifyFidelity() {
+      const model = selectedFidelityModel();
+      if (!model?.sourceStl) {
+        setStatus("Selecione um modelo individual para verificar a fidelidade.");
+        return;
+      }
+      if (window.location.protocol === "file:") {
+        setStatus("Para verificar fidelidade, abra a interface pelo inicializador local.");
+        return;
+      }
+      if (!(await localApiAvailable())) {
+        setStatus("Para verificar fidelidade, abra a interface local pelo link acima.");
+        return;
+      }
+
+      const baseName = slugFileName(model.name || model.fileName || "insert");
+      els.verifyFidelity.disabled = true;
+      els.generateStl.disabled = true;
+      startRenderModal(`${baseName}.fidelity`, [model], "fidelity");
+      setStatus(`Verificando fidelidade de ${baseName}...`);
+      try {
+        await loadRenderTimeout();
+        els.renderPhase.textContent = "Renderizando e comparando as superficies...";
+        const response = await fetch("/api/validate-fidelity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: `${baseName}.scad`,
+            originalStlBase64: bytesToBase64(model.sourceStl),
+            scad: renderScad([model], "boardgame_insert_toolkit_lib.4.scad"),
+            scale: model.bounds.scale || 1,
+            tolerance: 0.5,
+            samples: 6000,
+          }),
+        });
+        if (!response.ok) throw new Error(await response.text() || `erro HTTP ${response.status}`);
+        const result = await response.json();
+        displayFidelity(result.report, `data:image/png;base64,${result.previewBase64}`);
+        finishRenderModal(true, "Comparacao pronta e exibida na interface.");
+        setStatus(`Fidelidade de ${baseName}: ${numberOrDefault(result.report?.metrics?.fScorePct, 0).toFixed(2)}%.`);
+        els.fidelityView.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } catch (error) {
+        finishRenderModal(false, error.message);
+        setStatus(`Nao foi possivel verificar a fidelidade: ${error.message}`);
+      } finally {
+        els.generateStl.disabled = state.files.length === 0;
+        updateFidelityButton();
+      }
+    }
+
+    async function generateStl() {
+      if (state.files.length === 0) return;
+      if (window.location.protocol === "file:") {
+        setStatus("Para gerar STL, abra a interface por abrir-interface-stl-bgsd.cmd.");
+        return;
+      }
+      if (!(await localApiAvailable())) {
+        setStatus("Para gerar STL, abra a interface local pelo link acima.");
+        return;
+      }
+
+      const selected = els.previewSelect.value;
+      const models = selected === "combined"
+        ? state.files
+        : state.files.filter((model) => model.id === selected);
+      const baseName = selected === "combined"
+        ? normalizedScadName(els.combinedName.value || "all-inserts.scad").replace(/\.scad$/i, "")
+        : slugFileName(models[0]?.name || models[0]?.fileName || "insert");
+
+      els.generateStl.disabled = true;
+      startRenderModal(`${baseName}.stl`, models);
+      setStatus("OpenSCAD esta renderizando o STL; tampas vazadas podem levar varios minutos...");
+      try {
+        await loadRenderTimeout();
+        els.renderPhase.textContent = "OpenSCAD calculando a geometria...";
+        const response = await fetch("/api/render-stl", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: `${baseName}.scad`,
+            scad: renderScad(models, "boardgame_insert_toolkit_lib.4.scad"),
+          }),
+        });
+        if (!response.ok) throw new Error(await response.text() || `erro HTTP ${response.status}`);
+        downloadBlob(`${baseName}.stl`, await response.blob(), "model/stl");
+        finishRenderModal(true, "Arquivo pronto. Download iniciado.");
+        setStatus(`STL ${baseName}.stl gerado pelo OpenSCAD.`);
+      } catch (error) {
+        finishRenderModal(false, error.message);
+        setStatus(`Nao foi possivel gerar o STL: ${error.message}`);
+      } finally {
+        els.generateStl.disabled = state.files.length === 0;
+      }
+    }
+
+    async function downloadEach() {
+      if (state.files.length === 0) return;
+      const scadEntries = state.files.map((model) => ({
+        name: `${slugFileName(model.name || model.fileName)}.scad`,
+        text: renderScad([model], "boardgame_insert_toolkit_lib.4.scad"),
+      }));
+      await downloadScadPackage("inserts-individuais.zip", scadEntries);
+    }
+
+    async function downloadScadPackage(fileName, scadEntries) {
+      try {
+        setStatus("Montando pacote com a biblioteca BIT...");
+        const library = await embeddedBitLibraryBytes();
+        const encoder = new TextEncoder();
+        const entries = scadEntries.map((entry) => ({ name: entry.name, data: encoder.encode(entry.text) }));
+        entries.push({ name: "boardgame_insert_toolkit_lib.4.scad", data: library });
+        downloadBlob(fileName, createZip(entries), "application/zip");
+        setStatus(`Pacote ${fileName} baixado com a biblioteca BIT.`);
+      } catch (error) {
+        setStatus(`Nao foi possivel montar o pacote: ${error.message}`);
+      }
+    }
+
+    async function embeddedBitLibraryBytes() {
+      const encoded = window.BIT_LIBRARY_GZIP_BASE64;
+      if (!encoded) throw new Error("biblioteca BIT incorporada nao encontrada");
+      if (typeof DecompressionStream !== "function") {
+        throw new Error("este navegador nao suporta descompactacao; use Chrome ou Edge atualizado");
+      }
+      const binary = atob(encoded);
+      const compressed = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) compressed[i] = binary.charCodeAt(i);
+      const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    }
+
+    function createZip(entries) {
+      const localParts = [];
+      const centralParts = [];
+      let offset = 0;
+      for (const entry of entries) {
+        const name = new TextEncoder().encode(entry.name);
+        const data = entry.data;
+        const crc = crc32(data);
+        const local = zipHeader(30);
+        writeU32(local, 0, 0x04034b50);
+        writeU16(local, 4, 20);
+        writeU16(local, 6, 0x0800);
+        writeU32(local, 14, crc);
+        writeU32(local, 18, data.length);
+        writeU32(local, 22, data.length);
+        writeU16(local, 26, name.length);
+        localParts.push(local, name, data);
+
+        const central = zipHeader(46);
+        writeU32(central, 0, 0x02014b50);
+        writeU16(central, 4, 20);
+        writeU16(central, 6, 20);
+        writeU16(central, 8, 0x0800);
+        writeU32(central, 16, crc);
+        writeU32(central, 20, data.length);
+        writeU32(central, 24, data.length);
+        writeU16(central, 28, name.length);
+        writeU32(central, 42, offset);
+        centralParts.push(central, name);
+        offset += local.length + name.length + data.length;
+      }
+
+      const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+      const end = zipHeader(22);
+      writeU32(end, 0, 0x06054b50);
+      writeU16(end, 8, entries.length);
+      writeU16(end, 10, entries.length);
+      writeU32(end, 12, centralSize);
+      writeU32(end, 16, offset);
+      return new Blob([...localParts, ...centralParts, end], { type: "application/zip" });
+    }
+
+    function zipHeader(size) {
+      return new Uint8Array(size);
+    }
+
+    function writeU16(bytes, offset, value) {
+      new DataView(bytes.buffer).setUint16(offset, value, true);
+    }
+
+    function writeU32(bytes, offset, value) {
+      new DataView(bytes.buffer).setUint32(offset, value >>> 0, true);
+    }
+
+    function crc32(bytes) {
+      let crc = 0xffffffff;
+      for (const byte of bytes) {
+        crc ^= byte;
+        for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+      }
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    function downloadBlob(fileName, blob, type) {
+      const output = blob.type ? blob : new Blob([blob], { type });
+      const url = URL.createObjectURL(output);
       const link = document.createElement("a");
       link.href = url;
       link.download = fileName;
@@ -1368,22 +2482,280 @@
     }
 
     function detectCompartments(bounds) {
-      const xBands = detectWallBands(bounds.planes.x);
-      const yBands = detectWallBands(bounds.planes.y);
+      const xBands = filterPartialInteriorBands(bounds, 0, detectWallBands(bounds.planes.x, bounds.min[0], bounds.max[0]));
+      const yBands = filterPartialInteriorBands(bounds, 1, detectWallBands(bounds.planes.y, bounds.min[1], bounds.max[1]));
+      const zBands = detectWallBands(bounds.planes.z);
       const wallThickness = median([...xBands, ...yBands].map((band) => band.width).filter((value) => value > 0)) || state.settings.wall;
+      const bottomBand = zBands.find((band) => Math.abs(band.low - bounds.min[2]) <= 0.1);
+      const bottomThickness = bottomBand?.width || state.settings.bottom;
       const xIntervals = intervalsBetweenBands(xBands, bounds.min[0], bounds.max[0], wallThickness);
       const yIntervals = intervalsBetweenBands(yBands, bounds.min[1], bounds.max[1], wallThickness);
       const componentCount = xIntervals.length * yIntervals.length;
-      return { wallThickness, xIntervals, yIntervals, componentCount, detected: componentCount > 1 };
+      const cutouts = detectSideCutouts(bounds, wallThickness, bottomThickness);
+      const profileCuts = detectExternalProfileCuts(bounds, wallThickness);
+      return { wallThickness, bottomThickness, xIntervals, yIntervals, componentCount, cutouts, profileCuts, detected: componentCount > 1 };
     }
 
-    function detectWallBands(planeMap) {
+    function detectExternalProfileCuts(bounds, wallThickness = 2) {
+      const edgeRange = (axis, edge, crossAxis) => {
+        const points = bounds.facets
+          .filter((facet) => Math.abs(facet.normal[axis]) >= 0.98 && Math.abs(facet.centroid[axis] - edge) <= 0.1)
+          .flatMap((facet) => facet.points);
+        if (!points.length) return null;
+        const values = points.map((point) => point[crossAxis]);
+        return { min: Math.min(...values), max: Math.max(...values) };
+      };
+      const xEdges = [bounds.min[0], bounds.max[0]].map((edge) => edgeRange(0, edge, 1));
+      const yEdges = [bounds.min[1], bounds.max[1]].map((edge) => edgeRange(1, edge, 0));
+      const minimumCut = Math.max(2, wallThickness * 2);
+      const cuts = [];
+      for (let xSide = 0; xSide <= 1; xSide++) {
+        for (let ySide = 0; ySide <= 1; ySide++) {
+          const xRange = xEdges[xSide];
+          const yRange = yEdges[ySide];
+          if (!xRange || !yRange) continue;
+          const xInner = xSide === 0 ? yRange.min : yRange.max;
+          const yInner = ySide === 0 ? xRange.min : xRange.max;
+          const xOuter = bounds[xSide === 0 ? "min" : "max"][0];
+          const yOuter = bounds[ySide === 0 ? "min" : "max"][1];
+          const width = Math.abs(xOuter - xInner);
+          const depth = Math.abs(yOuter - yInner);
+          if (width < minimumCut || depth < minimumCut) continue;
+          cuts.push({
+            corner: `${ySide === 0 ? "front" : "back"}-${xSide === 0 ? "left" : "right"}`,
+            min: [round(Math.min(xOuter, xInner) - bounds.min[0]), round(Math.min(yOuter, yInner) - bounds.min[1])],
+            size: [round(width), round(depth)],
+            confidence: "high",
+          });
+        }
+      }
+      return cuts;
+    }
+
+    function detectSideCutouts(bounds, wallThickness, bottomThickness) {
+      const [sizeX, sizeY, sizeZ] = bounds.size;
+      const topThreshold = bounds.min[2] + Math.max(bottomThickness, sizeZ * 0.2);
+      const sides = [
+        { name: "front", axis: 1, crossAxis: 0, edge: bounds.min[1], direction: 1, depthLimit: Math.max(wallThickness * 4, sizeY * 0.3) },
+        { name: "back", axis: 1, crossAxis: 0, edge: bounds.max[1], direction: -1, depthLimit: Math.max(wallThickness * 4, sizeY * 0.3) },
+        { name: "left", axis: 0, crossAxis: 1, edge: bounds.min[0], direction: 1, depthLimit: Math.max(wallThickness * 4, sizeX * 0.3) },
+        { name: "right", axis: 0, crossAxis: 1, edge: bounds.max[0], direction: -1, depthLimit: Math.max(wallThickness * 4, sizeX * 0.3) },
+      ];
+      return sides.flatMap((side) => {
+        const facets = bounds.facets.filter((facet) => {
+          const normal = facet.normal.map(Math.abs);
+          const depth = (facet.centroid[side.axis] - side.edge) * side.direction;
+          const axisNormal = normal[side.axis];
+          const crossNormal = normal[side.crossAxis];
+          const cylindricalCut = axisNormal >= 0.12 && normal[2] >= 0.12 && crossNormal <= 0.25;
+          const planCut = axisNormal >= 0.08 && crossNormal >= 0.08 && normal[2] <= 0.15;
+          return depth >= -0.1 && depth <= side.depthLimit && facet.centroid[2] >= topThreshold &&
+            (cylindricalCut || planCut) && facet.area >= 0.01;
+        });
+        const area = facets.reduce((sum, facet) => sum + facet.area, 0);
+        const points = facets.flatMap((facet) => facet.points);
+        if (!points.length) {
+          const planarOpenings = detectPlanarSideOpenings(bounds, side, wallThickness);
+          if (planarOpenings.length) return planarOpenings;
+          return [{ side: side.name, detected: false, confidence: "low", facets: 0, area: 0 }];
+        }
+        const crossValues = points.map((point) => point[side.crossAxis]);
+        const depthValues = points.map((point) => (point[side.axis] - side.edge) * side.direction);
+        const zValues = points.map((point) => point[2]);
+        const crossSpan = Math.max(...crossValues) - Math.min(...crossValues);
+        const confidence = facets.length >= 8 && area >= 20 && crossSpan >= wallThickness * 2
+          ? "high"
+          : facets.length >= 2 && area >= 8 && crossSpan >= wallThickness * 1.5 ? "medium" : "low";
+        return [{
+          side: side.name,
+          detected: confidence !== "low",
+          confidence,
+          facets: facets.length,
+          area: round(area),
+          crossMin: Math.min(...crossValues),
+          crossMax: Math.max(...crossValues),
+          cutoutType: Math.min(...depthValues) <= Math.max(0.15, wallThickness * 0.5) ? "BOTH" : "INTERIOR",
+          depth: Math.max(...depthValues) - Math.min(...depthValues),
+          height: Math.max(...zValues) - Math.min(...zValues),
+        }];
+      });
+    }
+
+    function detectPlanarSideOpenings(bounds, side, wallThickness) {
+      const planeFacets = bounds.facets.filter((facet) =>
+        facet.points.every((point) => Math.abs(point[side.axis] - side.edge) <= 0.02));
+      if (planeFacets.length < 2) return [];
+
+      const crossMin = bounds.min[side.crossAxis];
+      const crossMax = bounds.max[side.crossAxis];
+      const zMin = bounds.min[2];
+      const zMax = bounds.max[2];
+      const samples = 31;
+      const openings = [];
+
+      for (let index = 0; index < samples; index++) {
+        const z = zMin + (zMax - zMin) * ((index + 0.5) / samples);
+        const intervals = planeFacets
+          .map((facet) => triangleIntervalAtZ(facet.points, side.crossAxis, z))
+          .filter(Boolean)
+          .sort((a, b) => a[0] - b[0]);
+        const merged = [];
+        for (const interval of intervals) {
+          const previous = merged.at(-1);
+          if (previous && interval[0] <= previous[1] + 0.05) previous[1] = Math.max(previous[1], interval[1]);
+          else merged.push([...interval]);
+        }
+        for (let gapIndex = 0; gapIndex < merged.length - 1; gapIndex++) {
+          const start = Math.max(crossMin, merged[gapIndex][1]);
+          const end = Math.min(crossMax, merged[gapIndex + 1][0]);
+          if (end - start >= wallThickness * 2) openings.push({ start, end, z });
+        }
+      }
+
+      if (!openings.length) return [];
+      const groups = [];
+      for (const opening of openings) {
+        let group = groups.find((candidate) =>
+          opening.end >= candidate.minStart - wallThickness && opening.start <= candidate.maxEnd + wallThickness);
+        if (!group) {
+          group = { values: [], minStart: opening.start, maxEnd: opening.end };
+          groups.push(group);
+        }
+        group.values.push(opening);
+        group.minStart = Math.min(group.minStart, opening.start);
+        group.maxEnd = Math.max(group.maxEnd, opening.end);
+      }
+
+      return groups.filter((group) => group.values.length >= Math.ceil(samples * 0.3)).map((group) => {
+        const starts = group.values.map((opening) => opening.start);
+        const ends = group.values.map((opening) => opening.end);
+        const zValues = group.values.map((opening) => opening.z);
+        const width = median(ends) - median(starts);
+        const sampleStep = (zMax - zMin) / samples;
+        const height = Math.min(zMax - zMin, Math.max(...zValues) - Math.min(...zValues) + sampleStep);
+        const confidence = group.values.length >= Math.ceil(samples * 0.7) && width >= wallThickness * 4 ? "high" : "medium";
+        return {
+          side: side.name,
+          detected: true,
+          confidence,
+          facets: planeFacets.length,
+          area: round(width * height),
+          crossMin: round(median(starts)),
+          crossMax: round(median(ends)),
+          cutoutType: "BOTH",
+          depth: wallThickness,
+          height: round(height),
+          planarOpening: true,
+        };
+      });
+    }
+
+    function triangleIntervalAtZ(points, crossAxis, z) {
+      const values = [];
+      for (let index = 0; index < 3; index++) {
+        const a = points[index];
+        const b = points[(index + 1) % 3];
+        const low = Math.min(a[2], b[2]);
+        const high = Math.max(a[2], b[2]);
+        if (z < low - 1e-6 || z > high + 1e-6) continue;
+        if (Math.abs(b[2] - a[2]) <= 1e-9) {
+          if (Math.abs(z - a[2]) <= 1e-6) values.push(a[crossAxis], b[crossAxis]);
+          continue;
+        }
+        const ratio = (z - a[2]) / (b[2] - a[2]);
+        if (ratio >= -1e-6 && ratio <= 1 + 1e-6) values.push(a[crossAxis] + (b[crossAxis] - a[crossAxis]) * ratio);
+      }
+      if (values.length < 2) return null;
+      return [Math.min(...values), Math.max(...values)];
+    }
+
+    function detectFeatureShape(bounds, xInterval, yInterval, bottomThickness) {
+      const zMin = bounds.min[2] + bottomThickness + 0.1;
+      let planarArea = 0;
+      let curvedArea = 0;
+      let curvedFacets = 0;
+      for (const facet of bounds.facets) {
+        const [x, y, z] = facet.centroid;
+        if (x < xInterval.start - 0.2 || x > xInterval.end + 0.2 ||
+            y < yInterval.start - 0.2 || y > yInterval.end + 0.2 || z < zMin) continue;
+        const [nx, ny, nz] = facet.normal.map(Math.abs);
+        if (nz > 0.15) continue;
+        if (nx > 0.08 && ny > 0.08) {
+          curvedArea += facet.area;
+          curvedFacets++;
+        } else if (nx > 0.9 || ny > 0.9) {
+          planarArea += facet.area;
+        }
+      }
+      const ratio = curvedArea / Math.max(1, curvedArea + planarArea);
+      if (curvedFacets >= 12 && ratio >= 0.45) return { shape: "ROUND", confidence: "high", curvedRatio: round(ratio) };
+      if (curvedFacets >= 6 && ratio >= 0.04) return { shape: "FILLET", confidence: ratio >= 0.12 ? "high" : "medium", curvedRatio: round(ratio) };
+      return { shape: "SQUARE", confidence: planarArea > 20 ? "high" : "medium", curvedRatio: round(ratio) };
+    }
+
+    function inferCutoutsForInterval(cutouts, xInterval, yInterval, featureHeight, bounds, wallThickness) {
+      const sideNames = ["front", "back", "left", "right"];
+      const matches = sideNames.map((side) => cutouts.find((cutout) => {
+        const interval = side === "front" || side === "back" ? xInterval : yInterval;
+        const depthInterval = side === "front" || side === "back" ? yInterval : xInterval;
+        const boundary = side === "front" || side === "left"
+          ? bounds.min[side === "front" ? 1 : 0] + wallThickness
+          : bounds.max[side === "back" ? 1 : 0] - wallThickness;
+        const touchesBoundary = side === "front" || side === "left"
+          ? depthInterval.start <= boundary + wallThickness
+          : depthInterval.end >= boundary - wallThickness;
+        return cutout.side === side && cutout.detected && cutout.crossMax >= interval.start &&
+          cutout.crossMin <= interval.end && touchesBoundary;
+      }));
+      const active = matches.filter(Boolean);
+      if (!active.length) return { sides: [false, false, false, false], confidence: "low" };
+      const boxHeight = bounds.size[2];
+      const baseHeight = boxHeight - featureHeight;
+      const maximumHeightPct = Math.max(0, (1 - (wallThickness + baseHeight + 0.5) / boxHeight) * 100);
+      const percentages = active.map((cutout) => {
+        const crossInterval = cutout.side === "front" || cutout.side === "back" ? xInterval : yInterval;
+        const depthInterval = cutout.side === "front" || cutout.side === "back" ? yInterval : xInterval;
+        const width = Math.max(0, Math.min(cutout.crossMax, crossInterval.end) - Math.max(cutout.crossMin, crossInterval.start));
+        const printableWidthPct = Math.max(5, (crossInterval.size - 1) / crossInterval.size * 100);
+        return {
+          height: Math.min(clampPercent(cutout.height / featureHeight * 100), maximumHeightPct),
+          depth: Math.max(clampPercent(cutout.depth / depthInterval.size * 100), clampPercent(6 / depthInterval.size * 100)),
+          width: clampPercent(width / crossInterval.size * 100, Math.min(95, printableWidthPct)),
+        };
+      });
+      return {
+        sides: matches.map(Boolean),
+        confidence: active.every((cutout) => cutout.confidence === "high") ? "high" : "medium",
+        type: active.some((cutout) => cutout.cutoutType === "BOTH") ? "BOTH" : "INTERIOR",
+        heightPct: round(median(percentages.map((value) => value.height))),
+        depthPct: round(median(percentages.map((value) => value.depth))),
+        widthPct: round(median(percentages.map((value) => value.width))),
+      };
+    }
+
+    function clampPercent(value, maximum = 100) {
+      return Math.max(5, Math.min(maximum, value));
+    }
+
+    function detectWallBands(planeMap, minimum = null, maximum = null) {
       const entries = [...planeMap.entries()].sort((a, b) => a[0] - b[0]);
       if (entries.length < 2) return [];
       const maxArea = Math.max(...entries.map((entry) => entry[1]));
-      const significant = entries
-        .filter(([, area]) => area >= maxArea * 0.3)
-        .sort((a, b) => a[0] - b[0]);
+      const selected = new Map(entries.filter(([, area]) => area >= maxArea * 0.3));
+      for (const [edge, direction] of [[minimum, 1], [maximum, -1]]) {
+        if (!Number.isFinite(edge)) continue;
+        const boundary = entries.find(([coordinate]) => Math.abs(coordinate - edge) <= 0.05);
+        if (!boundary || boundary[1] < maxArea * 0.1) continue;
+        const inward = entries.filter(([coordinate, area]) => {
+          const distance = (coordinate - edge) * direction;
+          return distance >= 0.35 && distance <= 4 && area >= maxArea * 0.1;
+        }).sort((a, b) => Math.abs(a[0] - edge) - Math.abs(b[0] - edge))[0];
+        if (inward) {
+          selected.set(boundary[0], boundary[1]);
+          selected.set(inward[0], inward[1]);
+        }
+      }
+      const significant = [...selected.entries()].sort((a, b) => a[0] - b[0]);
       const bands = [];
       for (let i = 0; i < significant.length - 1; i++) {
         const low = significant[i][0];
@@ -1395,6 +2767,22 @@
         }
       }
       return bands;
+    }
+
+    function filterPartialInteriorBands(bounds, axis, bands) {
+      if (bands.length <= 2) return bands;
+      const crossAxis = axis === 0 ? 1 : 0;
+      const requiredSpan = bounds.size[crossAxis] * 0.75;
+      return bands.filter((band, index) => {
+        if (index === 0 || index === bands.length - 1) return true;
+        const points = bounds.facets
+          .filter((facet) => Math.abs(facet.normal[axis]) >= 0.98 &&
+            (Math.abs(facet.centroid[axis] - band.low) <= 0.1 || Math.abs(facet.centroid[axis] - band.high) <= 0.1))
+          .flatMap((facet) => facet.points);
+        if (!points.length) return false;
+        const values = points.map((point) => point[crossAxis]);
+        return Math.max(...values) - Math.min(...values) >= requiredSpan;
+      });
     }
 
     function intervalsBetweenBands(bands, min, max, wallThickness) {
@@ -1413,14 +2801,22 @@
 
     function buildDetectedFeatures(name, bounds, detected, wallThickness) {
       const xIntervals = detected?.xIntervals?.length ? detected.xIntervals : intervalsBetweenBands([], bounds.min[0], bounds.max[0], wallThickness);
-      const yIntervals = detected?.yIntervals?.length ? detected.yIntervals : intervalsBetweenBands([], bounds.min[1], bounds.max[1], wallThickness);
-      const compZ = Math.max(0.1, round(bounds.size[2] - wallThickness + state.settings.heightExtra));
+      const sourceYIntervals = detected?.yIntervals?.length ? detected.yIntervals : intervalsBetweenBands([], bounds.min[1], bounds.max[1], wallThickness);
+      const partitioned = partitionIntervalsForProfileCuts(bounds, xIntervals, sourceYIntervals, detected?.profileCuts || [], wallThickness);
+      const yIntervals = partitioned.yIntervals;
+      const bottomThickness = detected?.bottomThickness || state.settings.bottom;
+      // BIT represents side walls and the floor with the same wall thickness.
       const features = [];
       for (let yIndex = 0; yIndex < yIntervals.length; yIndex++) {
         for (let xIndex = 0; xIndex < xIntervals.length; xIndex++) {
           const x = xIntervals[xIndex];
           const y = yIntervals[yIndex];
           const suffix = xIntervals.length * yIntervals.length > 1 ? ` ${features.length + 1}` : "";
+          const floor = inferCompartmentFloor(bounds, x, y, wallThickness);
+          const floorHeight = Math.max(wallThickness, floor ? floor.z - bounds.min[2] : wallThickness);
+          const compZ = Math.max(0.1, round(bounds.size[2] - floorHeight + state.settings.heightExtra));
+          const shape = detectFeatureShape(bounds, x, y, bottomThickness);
+          const cutoutInference = inferCutoutsForInterval(detected?.cutouts || [], x, y, compZ, bounds, wallThickness);
           features.push({
             name: `${sanitizeScadString(name)} cavity${suffix}`,
             size: [
@@ -1432,10 +2828,99 @@
               round(x.start - bounds.min[0] - wallThickness - state.settings.clearance),
               round(y.start - bounds.min[1] - wallThickness - state.settings.clearance),
             ],
+            floorTopZ: floor?.z ?? null,
+            shape,
+            cutoutSides: cutoutInference.sides,
+            cutoutInference,
           });
         }
       }
+      for (const extension of partitioned.extensions) {
+        const floor = inferCompartmentFloor(bounds, extension.x, extension.y, wallThickness);
+        const floorHeight = Math.max(wallThickness, floor ? floor.z - bounds.min[2] : wallThickness);
+        const compZ = Math.max(0.1, round(bounds.size[2] - floorHeight + state.settings.heightExtra));
+        const shape = detectFeatureShape(bounds, extension.x, extension.y, bottomThickness);
+        const cutoutInference = inferCutoutsForInterval(detected?.cutouts || [], extension.x, extension.y, compZ, bounds, wallThickness);
+        features.push({
+          name: `${sanitizeScadString(name)} profile extension`,
+          size: [
+            round(extension.x.size + state.settings.clearance * 2),
+            round(extension.y.size + state.settings.clearance * 2),
+            compZ,
+          ],
+          position: [
+            round(extension.x.start - bounds.min[0] - wallThickness - state.settings.clearance),
+            round(extension.y.start - bounds.min[1] - wallThickness - state.settings.clearance),
+          ],
+          floorTopZ: floor?.z ?? null,
+          shape,
+          cutoutSides: cutoutInference.sides,
+          cutoutInference,
+          profileExtension: true,
+        });
+      }
       return features;
+    }
+
+    function inferCompartmentFloor(bounds, xInterval, yInterval, wallThickness) {
+      const areas = new Map();
+      const topLimit = bounds.max[2] - Math.max(0.5, wallThickness * 0.5);
+      for (const facet of bounds.facets) {
+        if (Math.abs(facet.normal[2]) < 0.98) continue;
+        const zValues = facet.points.map((point) => point[2]);
+        if (Math.max(...zValues) - Math.min(...zValues) > 0.02) continue;
+        const [x, y, z] = facet.centroid;
+        if (x < xInterval.start - 0.1 || x > xInterval.end + 0.1 ||
+            y < yInterval.start - 0.1 || y > yInterval.end + 0.1 ||
+            z < bounds.min[2] - 0.01 || z >= topLimit) continue;
+        const level = roundTo(z, 2);
+        areas.set(level, (areas.get(level) || 0) + facet.area);
+      }
+      const requiredArea = Math.max(4, xInterval.size * yInterval.size * 0.35);
+      const candidate = [...areas.entries()].filter(([, area]) => area >= requiredArea)
+        .sort((a, b) => b[0] - a[0])[0];
+      return candidate ? { z: candidate[0] } : null;
+    }
+
+    function partitionIntervalsForProfileCuts(bounds, xIntervals, yIntervals, profileCuts, wallThickness) {
+      const adjustedY = yIntervals.map((interval) => ({ ...interval }));
+      const extensions = [];
+      if (xIntervals.length !== 1) return { yIntervals: adjustedY, extensions };
+      for (const cut of profileCuts) {
+        const [ySide, xSide] = cut.corner.split("-");
+        const yIndex = ySide === "front" ? 0 : adjustedY.length - 1;
+        const target = adjustedY[yIndex];
+        if (!target) continue;
+        const cutMinX = cut.min[0];
+        const cutMaxX = cut.min[0] + cut.size[0];
+        const cutMinY = cut.min[1];
+        const cutMaxY = cut.min[1] + cut.size[1];
+        const xLocal = xSide === "right"
+          ? [wallThickness, cutMinX - wallThickness]
+          : [cutMaxX + wallThickness, bounds.size[0] - wallThickness];
+        const yLocal = ySide === "back"
+          ? [cutMinY - wallThickness, bounds.size[1] - wallThickness]
+          : [wallThickness, cutMaxY + wallThickness];
+        const mainBoundary = ySide === "back" ? yLocal[0] : yLocal[1];
+        const sourceBoundary = bounds.min[1] + mainBoundary;
+        if (ySide === "back") target.end = round(Math.min(target.end, sourceBoundary));
+        else target.start = round(Math.max(target.start, sourceBoundary));
+        target.size = round(target.end - target.start);
+        const extension = {
+          x: {
+            start: round(bounds.min[0] + xLocal[0]),
+            end: round(bounds.min[0] + xLocal[1]),
+            size: round(xLocal[1] - xLocal[0]),
+          },
+          y: {
+            start: round(bounds.min[1] + yLocal[0]),
+            end: round(bounds.min[1] + yLocal[1]),
+            size: round(yLocal[1] - yLocal[0]),
+          },
+        };
+        if (extension.x.size > 5 && extension.y.size > 5 && target.size > 5) extensions.push(extension);
+      }
+      return { yIntervals: adjustedY, extensions };
     }
 
     function defaultIncludePath() {

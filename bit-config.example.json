@@ -1,0 +1,65 @@
+{
+  "globals": {
+    "G_TOLERANCE": 0.15,
+    "G_COLORIZE_B": true,
+    "G_VALIDATE_KEYS_B": true
+  },
+  "objects": {
+    "Solo": {
+      "type": "OBJECT_BOX",
+      "properties": {
+        "PRINT_GROUP": "main",
+        "CHAMFER_N": 0.6,
+        "BOX_STACKABLE_B": false,
+        "BOX_LID": {
+          "NAME": "Solo lid",
+          "PRINT_GROUP": "lid",
+          "LID_TYPE": "LID_CAP",
+          "LID_HEIGHT": 4,
+          "LID_SOLID_B": true,
+          "LID_TABS_4B": [true, true, true, true],
+          "LABEL": {
+            "NAME": "Solo lid label",
+            "LBL_TEXT": "Solo",
+            "LBL_PLACEMENT": "CENTER",
+            "LBL_SIZE": "AUTO",
+            "LBL_DEPTH": 0.3
+          }
+        },
+        "BOX_FEATURE": [
+          {
+            "NAME": "Main cavity",
+            "FTR_COMPARTMENT_SIZE_XYZ": [32, 120, 50],
+            "FTR_NUM_COMPARTMENTS_XY": [1, 1],
+            "FTR_SHAPE": "FILLET",
+            "FTR_FILLET_RADIUS": 8,
+            "FTR_CUTOUT_SIDES_4B": [true, false, false, false],
+            "FTR_CUTOUT_TYPE": "BOTH",
+            "POSITION_XY": [0, 0],
+            "FTR_DIVIDERS": {
+              "NAME": "Card dividers",
+              "DIV_AXIS": "Y",
+              "DIV_LAYOUT_BAYS": 3,
+              "DIV_THICKNESS": 0.6,
+              "DIV_TAB_TEXT": ["A", "B"]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "elements": [
+    {
+      "type": "OBJECT_DIVIDERS",
+      "properties": {
+        "NAME": "Loose dividers",
+        "PRINT_GROUP": "dividers",
+        "DIV_THICKNESS": 0.6,
+        "DIV_TAB_SIZE_XY": [32, 14],
+        "DIV_TAB_TEXT": ["A", "B", "C"],
+        "DIV_FRAME_SIZE_XY": [80, 60],
+        "DIV_FRAME_NUM_COLUMNS": 1
+      }
+    }
+  ]
+}

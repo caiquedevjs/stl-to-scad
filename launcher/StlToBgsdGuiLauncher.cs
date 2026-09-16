@@ -7,12 +7,12 @@ internal static class StlToBgsdGuiLauncher
     private static int Main()
     {
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-        string guiPath = Path.Combine(baseDir, "stl-to-bgsd-gui.html");
+        string serverPath = Path.Combine(baseDir, "tools", "gui-server.js");
 
-        if (!File.Exists(guiPath))
+        if (!File.Exists(serverPath))
         {
-            Console.Error.WriteLine("Nao encontrei a interface:");
-            Console.Error.WriteLine(guiPath);
+            Console.Error.WriteLine("Nao encontrei o servidor da interface:");
+            Console.Error.WriteLine(serverPath);
             Console.WriteLine();
             Console.WriteLine("Pressione Enter para fechar.");
             Console.ReadLine();
@@ -23,14 +23,18 @@ internal static class StlToBgsdGuiLauncher
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = guiPath,
-                UseShellExecute = true,
+                FileName = "node",
+                Arguments = "\"" + serverPath.Replace("\"", "\\\"") + "\" --open",
+                WorkingDirectory = baseDir,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
             });
             return 0;
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine("Nao foi possivel abrir a interface no navegador padrao.");
+            Console.Error.WriteLine("Nao foi possivel iniciar a interface. Confirme se o Node.js esta no PATH.");
             Console.Error.WriteLine(ex.Message);
             Console.WriteLine();
             Console.WriteLine("Pressione Enter para fechar.");

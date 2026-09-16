@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "alignment": {
+    "method": "aabb-center-translation",
+    "translation": [
+      66,
+      36,
+      0
+    ]
+  },
+  "settings": {
+    "toleranceMm": 0.5,
+    "samplesPerMesh": 6000
+  },
+  "original": {
+    "triangles": 3056,
+    "size": [
+      52,
+      155,
+      28
+    ],
+    "center": [
+      -40,
+      41.5,
+      14
+    ],
+    "surfaceAreaMm2": 41990.15,
+    "volumeMm3": 38843.694,
+    "boundaryEdges": 0,
+    "watertight": true
+  },
+  "reconstructed": {
+    "triangles": 1070,
+    "size": [
+      52,
+      155,
+      28
+    ],
+    "center": [
+      26,
+      77.5,
+      14
+    ],
+    "surfaceAreaMm2": 42528.402,
+    "volumeMm3": 31890.701,
+    "boundaryEdges": 15,
+    "watertight": false
+  },
+  "metrics": {
+    "precisionPct": 79.617,
+    "recallPct": 81.8,
+    "fScorePct": 80.694,
+    "meanSurfaceDistanceMm": 0.241695,
+    "rmsSurfaceDistanceMm": 0.695125,
+    "p95SurfaceDistanceMm": 1.5,
+    "maxSurfaceDistanceMm": 5.959363,
+    "dimensionsDeltaMm": [
+      0,
+      0,
+      0
+    ],
+    "maxDimensionsDeltaMm": 0,
+    "surfaceAreaRatio": 1.012819,
+    "volumeRatio": 0.821001
+  },
+  "rating": "partial",
+  "notes": [
+    "Reconstructed STL is not watertight; its volume may be unreliable."
+  ],
+  "files": {
+    "original": "C:\\Users\\caiqu\\OneDrive\\Documentos\\CONVERT STL TO SCAD\\Tokens B.stl",
+    "candidate": "C:\\Users\\caiqu\\OneDrive\\Documentos\\CONVERT STL TO SCAD\\my_designs\\Tokens B.scad"
+  },
+  "renderWarnings": [],
+  "preview": "C:\\Users\\caiqu\\OneDrive\\Documentos\\CONVERT STL TO SCAD\\my_designs\\Tokens B.fidelity.png"
+}

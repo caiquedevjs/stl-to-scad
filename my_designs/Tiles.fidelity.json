@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "alignment": {
+    "method": "aabb-center-translation",
+    "translation": [
+      191,
+      62.5,
+      0
+    ]
+  },
+  "settings": {
+    "toleranceMm": 0.5,
+    "samplesPerMesh": 6000
+  },
+  "original": {
+    "triangles": 2404,
+    "size": [
+      78,
+      163.5,
+      69
+    ],
+    "center": [
+      -152,
+      19.25,
+      34.5
+    ],
+    "surfaceAreaMm2": 86523.62,
+    "volumeMm3": 101532.086,
+    "boundaryEdges": 0,
+    "watertight": true
+  },
+  "reconstructed": {
+    "triangles": 1180,
+    "size": [
+      78,
+      163.5,
+      69
+    ],
+    "center": [
+      39,
+      81.75,
+      34.5
+    ],
+    "surfaceAreaMm2": 92974.501,
+    "volumeMm3": 69478.222,
+    "boundaryEdges": 10,
+    "watertight": false
+  },
+  "metrics": {
+    "precisionPct": 73.367,
+    "recallPct": 79.167,
+    "fScorePct": 76.156,
+    "meanSurfaceDistanceMm": 0.602159,
+    "rmsSurfaceDistanceMm": 1.80895,
+    "p95SurfaceDistanceMm": 5.751027,
+    "maxSurfaceDistanceMm": 13.292608,
+    "dimensionsDeltaMm": [
+      0,
+      0,
+      0
+    ],
+    "maxDimensionsDeltaMm": 0,
+    "surfaceAreaRatio": 1.074556,
+    "volumeRatio": 0.684298
+  },
+  "rating": "partial",
+  "notes": [
+    "Reconstructed STL is not watertight; its volume may be unreliable."
+  ],
+  "files": {
+    "original": "C:\\Users\\caiqu\\OneDrive\\Documentos\\CONVERT STL TO SCAD\\Tiles.stl",
+    "candidate": "C:\\Users\\caiqu\\OneDrive\\Documentos\\CONVERT STL TO SCAD\\my_designs\\Tiles.scad"
+  },
+  "renderWarnings": [],
+  "preview": "C:\\Users\\caiqu\\OneDrive\\Documentos\\CONVERT STL TO SCAD\\my_designs\\Tiles.fidelity.png"
+}
