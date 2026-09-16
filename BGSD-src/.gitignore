@@ -1,0 +1,14 @@
+.*
+!.github/
+!.prettierrc
+!.prettierignore
+node_modules/
+dist/
+release/
+harness/out/
+*.bak
+tests/workspace/
+docs/rpm/~rpm-*
+images/@eaDir/
+images/Thumbs.db
+pm-role.md

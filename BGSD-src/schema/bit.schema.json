@@ -1,0 +1,318 @@
+{
+  "version": "4.12.0",
+  "types": {
+    "bool": "Checkbox (true/false)",
+    "number": "Numeric input",
+    "string": "Text input",
+    "enum": "Dropdown of predefined values",
+    "xy": "Two numeric inputs [x, y]",
+    "xyz": "Three numeric inputs [x, y, z]",
+    "4bool": "Four checkboxes [front, back, left, right]",
+    "4num": "Four numeric inputs [front, back, left, right]",
+    "table": "Nested key-value table (single)",
+    "table_list": "List of nested key-value tables",
+    "string_list": "List of strings",
+    "number_or_false": "Numeric input or false",
+    "xyz_or_false": "Three-value input [x, y, z] or false; string constants such as MAX are allowed where BIT accepts them",
+    "shape": "Dropdown of built-in feature shapes, or an SVG shape block",
+    "bool_string_list": "Boolean, string selector, or list of string selectors",
+    "position_xy": "Two inputs: each is number, CENTER, or MAX"
+  },
+  "categories": {
+    "globals": [
+      { "label": "Output", "keys": ["G_PRINT_TYPES", "G_PRINT_GROUPS", "G_PRINT_BOXES"] },
+      { "label": "Preview & Validation", "keys": ["G_VISUALIZATION_B", "G_PREVIEW_NO_LABELS_B", "G_VALIDATE_KEYS_B", "G_FIT_TEST_B", "G_COLORIZE_B"] },
+      { "label": "Fit & Tolerance", "keys": ["G_TOLERANCE", "G_TOLERANCE_DETENT_POS"] },
+      { "label": "Defaults", "keys": ["G_WALL_THICKNESS", "G_LID_THICKNESS", "G_DEFAULT_FONT"] },
+      { "label": "Detents", "keys": ["G_DETENT_THICKNESS", "G_DETENT_SPACING", "G_DETENT_DIST_FROM_CORNER", "G_DETENT_MIN_SPACING"] }
+    ],
+    "contexts": {
+      "element": [
+        { "label": "Identity & Output", "keys": ["NAME", "PRINT_GROUP", "ENABLED_B", "DEBUG_B"] },
+        { "label": "Size & Walls", "keys": ["BOX_SIZE_XYZ", "BOX_WALL_THICKNESS", "CHAMFER_N"] },
+        { "label": "Lid Behavior", "keys": ["BOX_NO_LID_B", "BOX_STACKABLE_B", "BOX_LID"] },
+        { "label": "Contents", "keys": ["BOX_FEATURE", "FEATURE_GROUP", "FEATURE_COPY", "LABEL"] },
+        { "label": "Visualization", "keys": ["BOX_VISUALIZATION"] }
+      ],
+      "feature": [
+        { "label": "Identity & Output", "keys": ["NAME", "PRINT_GROUP", "ENABLED_B", "DEBUG_B"] },
+        { "label": "Size & Placement", "keys": ["FTR_COMPARTMENT_SIZE_XYZ", "FTR_NUM_COMPARTMENTS_XY", "POSITION_XY", "ROTATION"] },
+        { "label": "Shape", "keys": ["FTR_SHAPE", "FTR_SHAPE_AXIS", "FTR_SHAPE_VERTICAL_B", "FTR_FILLET_RADIUS", "FTR_SHEAR", "CHAMFER_N"] },
+        { "label": "Spacing & Margins", "keys": ["FTR_PADDING_XY", "FTR_PADDING_HEIGHT_ADJUST_XY", "FTR_MARGIN_FBLR"] },
+        { "label": "Cutouts", "keys": ["FTR_CUTOUT_SIDES_4B", "FTR_CUTOUT_CORNERS_4B", "FTR_CUTOUT_HEIGHT_PCT", "FTR_CUTOUT_DEPTH_PCT", "FTR_CUTOUT_WIDTH_PCT", "FTR_CUTOUT_BOTTOM_B", "FTR_CUTOUT_BOTTOM_PCT", "FTR_CUTOUT_TYPE", "FTR_CUTOUT_DEPTH_MAX"] },
+        { "label": "Print Helpers", "keys": ["FTR_PEDESTAL_BASE_B"] },
+        { "label": "Children", "keys": ["FTR_DIVIDERS", "BOX_FEATURE", "FEATURE_GROUP", "FEATURE_COPY", "LABEL"] }
+      ],
+      "shape_svg": [
+        { "label": "SVG Shape", "keys": ["SVG_FILE", "SVG_WIDTH_MM", "SVG_CLEARANCE_MM"] }
+      ],
+      "group": [
+        { "label": "Identity & Output", "keys": ["NAME", "PRINT_GROUP", "ENABLED_B", "DEBUG_B"] },
+        { "label": "Placement", "keys": ["POSITION_XY", "ROTATION"] },
+        { "label": "Children", "keys": ["BOX_FEATURE", "FEATURE_GROUP", "FEATURE_COPY"] }
+      ],
+      "copy": [
+        { "label": "Identity & Output", "keys": ["NAME", "PRINT_GROUP", "ENABLED_B", "DEBUG_B"] },
+        { "label": "Reference", "keys": ["FEATURE_REFERENCE"] },
+        { "label": "Placement", "keys": ["POSITION_XY", "ROTATION"] }
+      ],
+      "feature_divider": [
+        { "label": "Identity & Output", "keys": ["NAME", "ENABLED_B", "DEBUG_B"] },
+        { "label": "Layout", "keys": ["DIV_AXIS", "DIV_LAYOUT_BAYS", "DIV_LAYOUT_BAY_SIZE"] },
+        { "label": "Physical Size", "keys": ["DIV_RAIL_SIZE_XYZ", "DIV_NO_RAILS_B", "DIV_THICKNESS"] },
+        { "label": "Tabs", "keys": ["DIV_TAB_SIZE_XY", "DIV_TAB_RADIUS", "DIV_TAB_CYCLE", "DIV_TAB_CYCLE_START"] },
+        { "label": "Tab Text", "keys": ["DIV_TAB_TEXT", "DIV_TAB_TEXT_SIZE", "DIV_TAB_TEXT_FONT", "DIV_TAB_TEXT_SPACING", "DIV_TAB_TEXT_CHAR_THRESHOLD", "DIV_TAB_TEXT_EMBOSSED_B"] },
+        { "label": "Frame", "keys": ["DIV_FRAME_TOP", "DIV_FRAME_BOTTOM", "DIV_FRAME_COLUMN", "DIV_FRAME_RADIUS", "DIV_FRAME_NUM_COLUMNS"] }
+      ],
+      "lid": [
+        { "label": "Identity & Output", "keys": ["NAME", "PRINT_GROUP", "ENABLED_B", "DEBUG_B"] },
+        { "label": "Fit & Type", "keys": ["LID_TYPE", "LID_FIT_UNDER_B", "LID_INSET_B", "LID_HEIGHT", "LID_TABS_4B"] },
+        { "label": "Sliding Lid", "keys": ["LID_SLIDE_SIDE", "LID_DETENT_LOCK_ANGLE", "LID_FRAME_WIDTH"] },
+        { "label": "Cutouts", "keys": ["LID_CUTOUT_SIDES_4B"] },
+        { "label": "Pattern", "keys": ["LID_SOLID_B", "LID_STRIPE_WIDTH", "LID_STRIPE_SPACE", "LID_PATTERN_RADIUS", "LID_PATTERN_N1", "LID_PATTERN_N2", "LID_PATTERN_ANGLE", "LID_PATTERN_ROW_OFFSET", "LID_PATTERN_COL_OFFSET", "LID_PATTERN_THICKNESS"] },
+        { "label": "Labels", "keys": ["LID_LABELS_INVERT_B", "LID_SOLID_LABELS_DEPTH", "LID_LABELS_BG_THICKNESS", "LID_LABELS_BORDER_THICKNESS", "LABEL"] }
+      ],
+      "label": [
+        { "label": "Identity & Output", "keys": ["NAME", "PRINT_GROUP", "ENABLED_B"] },
+        { "label": "Content", "keys": ["LBL_TEXT", "LBL_IMAGE"] },
+        { "label": "Placement", "keys": ["LBL_PLACEMENT", "POSITION_XY", "ROTATION"] },
+        { "label": "Typography", "keys": ["LBL_SIZE", "LBL_FONT", "LBL_SPACING", "LBL_AUTO_SCALE_FACTOR"] },
+        { "label": "Cut & Emboss", "keys": ["LBL_DEPTH"] }
+      ],
+      "visualization": [
+        { "label": "Placement", "keys": ["POSITION_XY", "ROTATION"] }
+      ],
+      "divider": [
+        { "label": "Identity & Output", "keys": ["NAME", "PRINT_GROUP", "ENABLED_B"] },
+        { "label": "Physical Size", "keys": ["DIV_THICKNESS"] },
+        { "label": "Tabs", "keys": ["DIV_TAB_SIZE_XY", "DIV_TAB_RADIUS", "DIV_TAB_CYCLE", "DIV_TAB_CYCLE_START"] },
+        { "label": "Tab Text", "keys": ["DIV_TAB_TEXT", "DIV_TAB_TEXT_SIZE", "DIV_TAB_TEXT_FONT", "DIV_TAB_TEXT_SPACING", "DIV_TAB_TEXT_CHAR_THRESHOLD", "DIV_TAB_TEXT_EMBOSSED_B"] },
+        { "label": "Frame", "keys": ["DIV_FRAME_SIZE_XY", "DIV_FRAME_TOP", "DIV_FRAME_BOTTOM", "DIV_FRAME_COLUMN", "DIV_FRAME_RADIUS", "DIV_FRAME_NUM_COLUMNS"] }
+      ]
+    }
+  },
+  "contexts": {
+    "element": {
+      "description": "Top-level element (BOX, DIVIDERS, or SPACER)",
+      "keys": {
+        "NAME":              { "type": "string", "default": "", "help": "Display name for the element" },
+        "PRINT_GROUP":       { "type": "bool_string_list", "default": "", "help": "Optional printable-output group tag. A string or list of strings can be selected with G_PRINT_GROUPS.", "contexts": ["BOX", "SPACER"] },
+        "BOX_SIZE_XYZ":      { "type": "xyz", "default": [100, 100, 30], "help": "Box outer dimensions [x, y, z]. Omit to auto-calculate.", "contexts": ["BOX", "SPACER"] },
+        "BOX_FEATURE":     { "type": "table_list", "child_context": "feature", "help": "List of compartment components", "contexts": ["BOX", "SPACER"] },
+        "FEATURE_GROUP":   { "type": "table_list", "child_context": "group", "help": "Grouped child features with local position and rotation", "contexts": ["BOX", "SPACER"] },
+        "FEATURE_COPY":    { "type": "table_list", "child_context": "copy", "help": "Repeat a named feature or feature group with local position and rotation", "contexts": ["BOX", "SPACER"] },
+        "BOX_LID":           { "type": "table", "child_context": "lid", "help": "Lid parameters", "contexts": ["BOX"] },
+        "BOX_VISUALIZATION": { "type": "table", "child_context": "visualization", "help": "Placement overrides for assembled visualization mode", "contexts": ["BOX", "SPACER"] },
+        "BOX_NO_LID_B":      { "type": "bool", "default": false, "help": "If true, no lid is generated", "contexts": ["BOX"] },
+        "BOX_STACKABLE_B":   { "type": "bool", "default": false, "help": "If true, box has stacking features (forces inset lid)", "contexts": ["BOX"] },
+        "BOX_WALL_THICKNESS":{ "type": "number", "default": 2.0, "step": 0.1, "help": "Wall thickness in mm (overrides global)", "contexts": ["BOX", "SPACER"] },
+        "CHAMFER_N":         { "type": "number", "default": 0.4, "step": 0.1, "help": "Edge chamfer size in mm — applied to both interior and exterior edges", "contexts": ["BOX", "SPACER"] },
+        "ENABLED_B":         { "type": "bool", "default": true, "help": "If false, element is skipped" },
+        "DEBUG_B":           { "type": "bool", "default": false, "help": "If true, geometry is rendered with # debug modifier (transparent red)" },
+        "LABEL":             { "type": "table", "child_context": "label", "help": "Box-level label", "contexts": ["BOX"] }
+      }
+    },
+    "feature": {
+      "description": "Feature (inside BOX_FEATURE)",
+      "keys": {
+        "NAME":                      { "type": "string", "default": "", "help": "Display name for the feature" },
+        "PRINT_GROUP":               { "type": "bool_string_list", "default": "", "help": "Optional printable-output group tag inherited by child features and labels unless overridden" },
+        "FTR_COMPARTMENT_SIZE_XYZ":  { "type": "xyz", "default": [10, 10, 10], "help": "Compartment inner size [x, y, z]" },
+        "FTR_NUM_COMPARTMENTS_XY":   { "type": "xy", "default": [1, 1], "help": "Grid of compartments [columns, rows]" },
+        "FTR_SHAPE":                 { "type": "shape", "values": ["SQUARE", "HEX", "HEX2", "OCT", "OCT2", "ROUND", "FILLET"], "default": "SQUARE", "child_context": "shape_svg", "help": "Compartment shape; use an SVG shape block for custom-piece outline cavities" },
+        "FTR_SHAPE_AXIS":            { "type": "enum", "values": ["X", "Y"], "default": "Y", "help": "Axis used to orient asymmetric compartment shapes" },
+        "FTR_SHAPE_VERTICAL_B":      { "type": "bool", "default": false, "help": "Extrude shape vertically instead of up" },
+        "FTR_PADDING_XY":            { "type": "xy", "default": [1.0, 1.0], "help": "Padding between compartments [x, y]" },
+        "FTR_PADDING_HEIGHT_ADJUST_XY": { "type": "xy", "default": [0.0, 0.0], "help": "Height adjustment for padding walls [x, y]" },
+        "FTR_MARGIN_FBLR":           { "type": "4num", "default": [0, 0, 0, 0], "step": 0.5, "help": "Extra margin [front, back, left, right] in mm" },
+        "FTR_CUTOUT_SIDES_4B":       { "type": "4bool", "default": [false, false, false, false], "help": "Finger cutouts on [front, back, left, right]" },
+        "FTR_CUTOUT_CORNERS_4B":     { "type": "4bool", "default": [false, false, false, false], "help": "Corner cutouts [FL, BR, BL, FR]" },
+        "FTR_CUTOUT_HEIGHT_PCT":     { "type": "number", "default": 100, "step": 5, "help": "Cutout height as % of compartment height" },
+        "FTR_CUTOUT_DEPTH_PCT":      { "type": "number", "default": 25, "step": 5, "help": "Cutout depth as % of compartment depth" },
+        "FTR_CUTOUT_WIDTH_PCT":      { "type": "number", "default": 50, "step": 5, "help": "Cutout width as % of compartment width" },
+        "FTR_CUTOUT_BOTTOM_B":       { "type": "bool", "default": false, "help": "If true, add bottom cutout for pushing pieces out" },
+        "FTR_CUTOUT_BOTTOM_PCT":     { "type": "number", "default": 80, "step": 5, "help": "Bottom cutout size as % of compartment" },
+        "FTR_CUTOUT_TYPE":           { "type": "enum", "values": ["INTERIOR", "EXTERIOR", "BOTH"], "default": "BOTH", "help": "Where cutouts are applied" },
+        "FTR_CUTOUT_DEPTH_MAX":      { "type": "number", "default": 0, "step": 0.5, "help": "Max cutout depth in mm (0 = no limit)" },
+        "FTR_SHEAR":                 { "type": "xy", "default": [0.0, 0.0], "help": "Shear angle [x, y] in degrees" },
+        "CHAMFER_N":                 { "type": "number", "default": 0.4, "step": 0.1, "help": "Overrides box-level chamfer for this component" },
+        "FTR_FILLET_RADIUS":         { "type": "number", "default": 10, "step": 1, "help": "Fillet radius for FILLET shape (capped at compartment height)" },
+        "FTR_PEDESTAL_BASE_B":       { "type": "bool", "default": false, "help": "If true, compartment has pedestal push-out base" },
+        "ENABLED_B":                 { "type": "bool", "default": true, "help": "If false, component is skipped" },
+        "DEBUG_B":                   { "type": "bool", "default": false, "help": "If true, feature geometry is rendered with # debug modifier (transparent red)" },
+        "FTR_DIVIDERS":              { "type": "table", "child_context": "feature_divider", "help": "Generated divider panels and matching rail grooves inside this feature" },
+        "BOX_FEATURE":               { "type": "table_list", "child_context": "feature", "help": "Nested child feature inside this component" },
+        "FEATURE_GROUP":             { "type": "table_list", "child_context": "group", "help": "Nested child feature group inside this component" },
+        "FEATURE_COPY":              { "type": "table_list", "child_context": "copy", "help": "Repeat a named feature or feature group inside this component" },
+        "LABEL":                     { "type": "table", "child_context": "label", "help": "Component-level label" },
+        "ROTATION":                  { "type": "number", "default": 0, "step": 5, "help": "Rotation in degrees" },
+        "POSITION_XY":               { "type": "position_xy", "default": ["CENTER", "CENTER"], "help": "Position [x, y]. Accepts numbers, CENTER, or MAX." }
+      }
+    },
+    "group": {
+      "description": "Feature group (inside FEATURE_GROUP)",
+      "keys": {
+        "NAME":                      { "type": "string", "default": "", "help": "Display name for the feature group" },
+        "PRINT_GROUP":               { "type": "bool_string_list", "default": "", "help": "Optional printable-output group tag inherited by child features/copies unless overridden" },
+        "ENABLED_B":                 { "type": "bool", "default": true, "help": "If false, group is skipped" },
+        "DEBUG_B":                   { "type": "bool", "default": false, "help": "If true, group geometry is rendered with # debug modifier (transparent red)" },
+        "BOX_FEATURE":               { "type": "table_list", "child_context": "feature", "help": "Child feature inside this group" },
+        "FEATURE_GROUP":             { "type": "table_list", "child_context": "group", "help": "Nested child feature group" },
+        "FEATURE_COPY":              { "type": "table_list", "child_context": "copy", "help": "Repeat a named feature or feature group inside this group" },
+        "ROTATION":                  { "type": "number", "default": 0, "step": 5, "help": "Group rotation in degrees" },
+        "POSITION_XY":               { "type": "xy", "default": [0, 0], "help": "Group position [x, y] in parent-local mm" }
+      }
+    },
+    "copy": {
+      "description": "Feature copy (inside FEATURE_COPY)",
+      "keys": {
+        "NAME":                      { "type": "string", "default": "", "help": "Display name for this feature copy" },
+        "PRINT_GROUP":               { "type": "bool_string_list", "default": "", "help": "Optional printable-output group tag for this copied feature/group" },
+        "ENABLED_B":                 { "type": "bool", "default": true, "help": "If false, copy is skipped" },
+        "DEBUG_B":                   { "type": "bool", "default": false, "help": "If true, copied geometry is rendered with # debug modifier (transparent red)" },
+        "FEATURE_REFERENCE":         { "type": "string", "default": "", "help": "NAME of the BOX_FEATURE or FEATURE_GROUP to repeat" },
+        "ROTATION":                  { "type": "number", "default": 0, "step": 5, "help": "Copy rotation in degrees" },
+        "POSITION_XY":               { "type": "xy", "default": [0, 0], "help": "Copy position [x, y] in parent-local mm" }
+      }
+    },
+    "feature_divider": {
+      "description": "Generated divider subgroup (inside BOX_FEATURE > FTR_DIVIDERS)",
+      "keys": {
+        "NAME":                      { "type": "string", "default": "", "help": "Display name for the generated divider subgroup" },
+        "ENABLED_B":                 { "type": "bool", "default": true, "help": "If false, generated dividers are skipped" },
+        "DEBUG_B":                   { "type": "bool", "default": false, "help": "If true, generated divider geometry is rendered with # debug modifier (transparent red)" },
+        "DIV_AXIS":                  { "type": "enum", "values": ["X", "Y"], "default": "X", "help": "Axis used to place generated divider slots" },
+        "DIV_LAYOUT_BAYS":           { "type": "number", "default": 0, "step": 1, "help": "Number of bays along the divider axis; generated divider count is bays - 1" },
+        "DIV_LAYOUT_BAY_SIZE":       { "type": "number", "default": 0, "step": 0.5, "help": "Bay span along the divider axis in mm; 0 evenly spaces generated dividers" },
+        "DIV_RAIL_SIZE_XYZ":         { "type": "xyz_or_false", "default": false, "help": "Rail groove size [thickness, width, height]; height can be MAX; false uses BIT's wall/compartment-based default" },
+        "DIV_NO_RAILS_B":            { "type": "bool", "default": false, "help": "If true, omit matching box-side divider rail grooves" },
+        "DIV_THICKNESS":             { "type": "number", "default": 0.5, "step": 0.1, "help": "Divider card thickness in mm" },
+        "DIV_TAB_SIZE_XY":           { "type": "xy", "default": [32, 14], "help": "Tab dimensions [width, height]" },
+        "DIV_TAB_RADIUS":            { "type": "number", "default": 4, "step": 0.5, "help": "Tab corner radius" },
+        "DIV_TAB_CYCLE":             { "type": "number", "default": 3, "step": 1, "help": "Number of tab positions before cycling" },
+        "DIV_TAB_CYCLE_START":       { "type": "number", "default": 1, "step": 1, "help": "Starting position in tab cycle" },
+        "DIV_TAB_TEXT":              { "type": "string_list", "default": ["001", "002", "003"], "help": "Tab label text (one per divider)" },
+        "DIV_TAB_TEXT_SIZE":         { "type": "number", "default": 7, "step": 1, "help": "Tab text font size" },
+        "DIV_TAB_TEXT_FONT":         { "type": "string", "default": "Stencil Std:style=Bold", "help": "Tab text font" },
+        "DIV_TAB_TEXT_SPACING":      { "type": "number", "default": 1.1, "step": 0.1, "help": "Tab text letter spacing" },
+        "DIV_TAB_TEXT_CHAR_THRESHOLD": { "type": "number", "default": 4, "step": 1, "help": "Auto-shrink text above this many characters" },
+        "DIV_TAB_TEXT_EMBOSSED_B":   { "type": "bool", "default": false, "help": "Raised text (true) vs cut-through (false)" },
+        "DIV_FRAME_TOP":             { "type": "number", "default": 10, "step": 1, "help": "Frame top border width" },
+        "DIV_FRAME_BOTTOM":          { "type": "number", "default": 10, "step": 1, "help": "Frame bottom border width" },
+        "DIV_FRAME_COLUMN":          { "type": "number", "default": 7, "step": 1, "help": "Frame column divider width" },
+        "DIV_FRAME_RADIUS":          { "type": "number", "default": 4, "step": 0.5, "help": "Frame corner radius" },
+        "DIV_FRAME_NUM_COLUMNS":     { "type": "number", "default": -1, "step": 1, "help": "Number of frame columns (-1 = auto)" }
+      }
+    },
+    "shape_svg": {
+      "description": "SVG shape block (inside BOX_FEATURE > FTR_SHAPE)",
+      "keys": {
+        "SVG_FILE":                  { "type": "string", "default": "", "help": "Path to the SVG outline file imported by OpenSCAD" },
+        "SVG_WIDTH_MM":              { "type": "number", "default": 10, "step": 0.5, "help": "Measured real-world width for scaling the imported SVG outline" },
+        "SVG_CLEARANCE_MM":          { "type": "number", "default": 0.1, "step": 0.05, "help": "Outline expansion clearance in mm; BIT defaults to G_TOLERANCE when omitted" }
+      }
+    },
+    "lid": {
+      "description": "Lid parameters (inside BOX_LID)",
+      "keys": {
+        "NAME":                         { "type": "string", "default": "", "help": "Display name for the lid" },
+        "PRINT_GROUP":                  { "type": "bool_string_list", "default": "", "help": "Optional printable-output group tag; defaults to the parent box print group" },
+        "ENABLED_B":                    { "type": "bool", "default": true, "help": "If false, lid is skipped" },
+        "LID_FIT_UNDER_B":              { "type": "bool", "default": true, "help": "Lid fits under the box (cap style)" },
+        "LID_SOLID_B":                  { "type": "bool", "default": false, "help": "Solid lid (no pattern cutouts)" },
+        "LID_HEIGHT":                   { "type": "number", "default": 4.0, "step": 0.5, "help": "Lid height in mm (default: 4 cap, 2 inset)" },
+        "LID_TYPE":                     { "type": "enum", "values": ["LID_CAP", "LID_INSET", "LID_SLIDING"], "default": "LID_CAP", "help": "Lid style. If omitted, BIT uses legacy cap/inset behavior." },
+        "LID_SLIDE_SIDE":               { "type": "enum", "values": ["FRONT", "BACK", "LEFT", "RIGHT"], "default": "FRONT", "help": "Side a sliding lid opens from" },
+        "LID_DETENT_LOCK_ANGLE":        { "type": "number", "default": 45, "step": 5, "help": "Sliding lid detent lock-side angle in degrees; use 90 for a vertical lock face, lower values bevel the lock side" },
+        "LID_FRAME_WIDTH":              { "type": "number", "default": 2.0, "step": 0.1, "help": "Perimeter frame width on patterned sliding lids (defaults to box wall thickness; 0 omits frame)" },
+        "LID_INSET_B":                  { "type": "bool", "default": false, "help": "Inset lid (sits inside box walls)" },
+        "LID_CUTOUT_SIDES_4B":          { "type": "4bool", "default": [false, false, false, false], "help": "Lid finger cutouts [front, back, left, right]" },
+        "LID_TABS_4B":                  { "type": "4bool", "default": [true, true, true, true], "help": "Lid retention tabs [front, back, left, right]" },
+        "LID_LABELS_INVERT_B":          { "type": "bool", "default": false, "help": "Invert label text (raised instead of recessed)" },
+        "LID_SOLID_LABELS_DEPTH":       { "type": "number", "default": 0.5, "step": 0.1, "help": "Label depth on solid lids in mm" },
+        "LID_LABELS_BG_THICKNESS":      { "type": "number", "default": 2.0, "step": 0.1, "help": "Label background thickness in mm" },
+        "LID_LABELS_BORDER_THICKNESS":  { "type": "number", "default": 0.3, "step": 0.1, "help": "Label border thickness in mm" },
+        "LID_STRIPE_WIDTH":             { "type": "number", "default": 0.5, "step": 0.1, "help": "Stripe width for striped pattern" },
+        "LID_STRIPE_SPACE":             { "type": "number", "default": 1, "step": 0.1, "help": "Stripe spacing for striped pattern" },
+        "LID_PATTERN_RADIUS":           { "type": "number", "default": 4.0, "step": 0.5, "help": "Pattern element radius" },
+        "LID_PATTERN_N1":               { "type": "number", "default": 6, "step": 1, "help": "Pattern sides count 1" },
+        "LID_PATTERN_N2":               { "type": "number", "default": 6, "step": 1, "help": "Pattern sides count 2" },
+        "LID_PATTERN_ANGLE":            { "type": "number", "default": 30, "step": 5, "help": "Pattern rotation angle" },
+        "LID_PATTERN_ROW_OFFSET":       { "type": "number", "default": 50, "step": 5, "help": "Pattern row offset %" },
+        "LID_PATTERN_COL_OFFSET":       { "type": "number", "default": 100, "step": 5, "help": "Pattern column offset %" },
+        "LID_PATTERN_THICKNESS":        { "type": "number", "default": 0.5, "step": 0.1, "help": "Pattern wall thickness" },
+        "DEBUG_B":                     { "type": "bool", "default": false, "help": "If true, lid geometry is rendered with # debug modifier (transparent red)" },
+        "LABEL":                        { "type": "table", "child_context": "label", "help": "Lid label" }
+      }
+    },
+    "label": {
+      "description": "Label parameters (inside LABEL)",
+      "keys": {
+        "NAME":                { "type": "string", "default": "", "help": "Display name for the label" },
+        "PRINT_GROUP":         { "type": "bool_string_list", "default": "", "help": "Optional printable-output group tag; defaults to the containing box, lid, feature, group, or copy" },
+        "LBL_TEXT":            { "type": "string", "default": "", "help": "Label text (or list of strings for multi-line)" },
+        "LBL_IMAGE":           { "type": "string", "default": "", "help": "Path to SVG/image file" },
+        "LBL_SIZE":            { "type": "number", "default": "AUTO", "step": 1, "help": "Font size (number or AUTO)" },
+        "LBL_PLACEMENT":       { "type": "enum", "values": ["FRONT", "BACK", "LEFT", "RIGHT", "FRONT_WALL", "BACK_WALL", "LEFT_WALL", "RIGHT_WALL", "CENTER", "BOTTOM"], "default": "CENTER", "help": "Where to place the label" },
+        "LBL_FONT":            { "type": "string", "default": "Liberation Sans:style=Regular", "help": "Font name" },
+        "LBL_DEPTH":           { "type": "number", "default": 0.2, "step": 0.1, "help": "Label cut/emboss depth in mm" },
+        "LBL_SPACING":         { "type": "number", "default": 1, "step": 0.1, "help": "Letter spacing" },
+        "LBL_AUTO_SCALE_FACTOR": { "type": "number", "default": 1.2, "step": 0.1, "help": "Scale factor for AUTO size" },
+        "ENABLED_B":           { "type": "bool", "default": true, "help": "If false, label is skipped" },
+        "ROTATION":            { "type": "number", "default": 0, "step": 5, "help": "Label rotation in degrees" },
+        "POSITION_XY":         { "type": "xy", "default": [0, 0], "help": "Label position offset [x, y]" }
+      }
+    },
+    "visualization": {
+      "description": "Box visualization placement (inside BOX_VISUALIZATION)",
+      "keys": {
+        "ROTATION":            { "type": "number", "default": 0, "step": 5, "help": "Visualization rotation in degrees" },
+        "POSITION_XY":         { "type": "xy", "default": [0, 0], "help": "Visualization position offset [x, y] in mm" }
+      }
+    },
+    "divider": {
+      "description": "Divider parameters (OBJECT_DIVIDERS)",
+      "keys": {
+        "NAME":                      { "type": "string", "default": "", "help": "Display name for the element" },
+        "PRINT_GROUP":               { "type": "bool_string_list", "default": "", "help": "Optional printable-output group tag. A string or list of strings can be selected with G_PRINT_GROUPS." },
+        "ENABLED_B":                 { "type": "bool", "default": true, "help": "If false, divider is skipped" },
+        "DIV_THICKNESS":             { "type": "number", "default": 0.5, "step": 0.1, "help": "Divider card thickness in mm" },
+        "DIV_TAB_SIZE_XY":           { "type": "xy", "default": [32, 14], "help": "Tab dimensions [width, height]" },
+        "DIV_TAB_RADIUS":            { "type": "number", "default": 4, "step": 0.5, "help": "Tab corner radius" },
+        "DIV_TAB_CYCLE":             { "type": "number", "default": 3, "step": 1, "help": "Number of tab positions before cycling" },
+        "DIV_TAB_CYCLE_START":       { "type": "number", "default": 1, "step": 1, "help": "Starting position in tab cycle" },
+        "DIV_TAB_TEXT":              { "type": "string_list", "default": ["001", "002", "003"], "help": "Tab label text (one per divider)" },
+        "DIV_TAB_TEXT_SIZE":         { "type": "number", "default": 7, "step": 1, "help": "Tab text font size" },
+        "DIV_TAB_TEXT_FONT":         { "type": "string", "default": "Stencil Std:style=Bold", "help": "Tab text font" },
+        "DIV_TAB_TEXT_SPACING":      { "type": "number", "default": 1.1, "step": 0.1, "help": "Tab text letter spacing" },
+        "DIV_TAB_TEXT_CHAR_THRESHOLD": { "type": "number", "default": 4, "step": 1, "help": "Auto-shrink text above this many characters" },
+        "DIV_TAB_TEXT_EMBOSSED_B":   { "type": "bool", "default": false, "help": "Raised text (true) vs cut-through (false)" },
+        "DIV_FRAME_SIZE_XY":         { "type": "xy", "default": [80, 80], "help": "Frame dimensions [width, height]" },
+        "DIV_FRAME_TOP":             { "type": "number", "default": 10, "step": 1, "help": "Frame top border width" },
+        "DIV_FRAME_BOTTOM":          { "type": "number", "default": 10, "step": 1, "help": "Frame bottom border width" },
+        "DIV_FRAME_COLUMN":          { "type": "number", "default": 7, "step": 1, "help": "Frame column divider width" },
+        "DIV_FRAME_RADIUS":          { "type": "number", "default": 4, "step": 0.5, "help": "Frame corner radius" },
+        "DIV_FRAME_NUM_COLUMNS":     { "type": "number", "default": -1, "step": 1, "help": "Number of frame columns (-1 = auto)" }
+      }
+    }
+  },
+  "globals": {
+    "G_PRINT_TYPES":           { "type": "string_list", "default": [], "help": "Select output target types: empty prints all; BOX, LID, DIVIDERS, or a list prints matching target types" },
+    "G_PRINT_GROUPS":          { "type": "string_list", "default": [], "help": "Select printable groups: empty prints normal output; a string or list prints matching PRINT_GROUP tags" },
+    "G_PRINT_BOXES":           { "type": "string_list", "default": [], "help": "Select top-level entries by NAME: empty prints all; a string or list prints matching boxes/objects" },
+    "G_FIT_TEST_B":            { "type": "bool",   "default": false, "help": "Output everything as placeholders for fit testing" },
+    "G_VISUALIZATION_B":       { "type": "bool",   "default": false, "help": "Show boxes assembled (visualization mode)" },
+    "G_PREVIEW_NO_LABELS_B":   { "type": "bool",   "default": false, "help": "Turn off labels during preview" },
+    "G_VALIDATE_KEYS_B":       { "type": "bool",   "default": true,  "help": "Warn about unknown/malformed keys and known physical fit or printability risks" },
+    "G_WALL_THICKNESS":        { "type": "number", "default": 2.0,   "step": 0.1, "help": "Default wall thickness in mm" },
+    "G_DETENT_THICKNESS":      { "type": "number", "default": 0.8,   "step": 0.05, "help": "Thickness of lid/box detent in mm" },
+    "G_DETENT_SPACING":        { "type": "number", "default": 2,     "step": 0.5, "help": "Length of detent in mm" },
+    "G_DETENT_DIST_FROM_CORNER": { "type": "number", "default": 1.5, "step": 0.5, "help": "Distance from corner to start detent" },
+    "G_DETENT_MIN_SPACING":    { "type": "number", "default": 40,    "step": 1, "help": "Min spacing for extra detents" },
+    "G_LID_THICKNESS":         { "type": "number_or_false", "default": false, "step": 0.1, "help": "Thickness of box lid in mm; false follows wall thickness" },
+    "G_COLORIZE_B":            { "type": "bool",   "default": true,  "help": "Colorize parts for development" },
+    "G_TOLERANCE":             { "type": "number", "default": 0.1,   "step": 0.05, "help": "Tolerance gap between fitting pieces" },
+    "G_TOLERANCE_DETENT_POS":  { "type": "number", "default": 0.1,   "step": 0.05, "help": "Adjusts position of lid detents" },
+    "G_DEFAULT_FONT":          { "type": "string", "default": "Liberation Sans:style=Regular", "help": "Default font for labels" }
+  }
+}

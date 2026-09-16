@@ -1,0 +1,111 @@
+import bitSchema from "../../schema/bit.schema.json";
+import ctdSchema from "../../schema/ctd.schema.json";
+
+const schemas: Record<string, any> = { bit: bitSchema, ctd: ctdSchema };
+
+export function getSchema(profileId: string = "bit") {
+  return schemas[profileId] || bitSchema;
+}
+
+export const schema = bitSchema;
+
+export interface KeyDef {
+  type: string;
+  default?: any;
+  values?: string[];
+  help?: string;
+  child_context?: string;
+  contexts?: string[];
+}
+
+/** Cache for context key lookups (keyed by schema ref + context name) */
+const contextKeysCache = new Map<string, Record<string, KeyDef>>();
+
+/** Get all key definitions for a context (memoized for default schemas) */
+export function getContextKeys(context: string, schemaOverride?: any): Record<string, KeyDef> {
+  const s = schemaOverride || bitSchema;
+  // Only cache for built-in schemas (not arbitrary overrides)
+  if (!schemaOverride) {
+    const cached = contextKeysCache.get(context);
+    if (cached) return cached;
+    const result = (s.contexts as any)[context]?.keys || {};
+    contextKeysCache.set(context, result);
+    return result;
+  }
+  return (s.contexts as any)[context]?.keys || {};
+}
+
+/** Check if a key is a nested/optional type (table or table_list) */
+export function isOptionalNode(keyDef: KeyDef): boolean {
+  return keyDef.type === "table" || keyDef.type === "table_list";
+}
+
+/**
+ * Given existing params and a context, return a full list of params
+ * with all scalar keys filled from schema defaults. Optional sub-nodes
+ * (table, table_list) are only included if already present in params.
+ */
+export function mergeWithDefaults(
+  params: { key: string; value: any }[],
+  context: string,
+  elementType?: string,
+  schemaOverride?: any,
+): { key: string; value: any }[] {
+  const keys = getContextKeys(context, schemaOverride);
+  const result: { key: string; value: any }[] = params.map((p) => ({ key: p.key, value: p.value }));
+  const existingKeys = new Set(result.map((p) => p.key));
+
+  // Append scalar defaults that are missing (keep existing order intact).
+  for (const [key, def] of Object.entries(keys)) {
+    if (def.contexts && elementType && !def.contexts.includes(elementType)) continue;
+    if (existingKeys.has(key)) continue;
+    if (isOptionalNode(def)) continue;
+    result.push({ key, value: def.default ?? null });
+  }
+
+  return result;
+}
+
+/**
+ * Get the list of optional sub-nodes that can be added to a context.
+ * Returns keys that are table/table_list and not yet present.
+ */
+export function getAddableNodes(
+  params: { key: string; value: any }[],
+  context: string,
+  elementType?: string,
+  schemaOverride?: any,
+): { key: string; def: KeyDef }[] {
+  const keys = getContextKeys(context, schemaOverride);
+  const existingKeys = new Set(params.map((p) => p.key));
+  const addable: { key: string; def: KeyDef }[] = [];
+
+  for (const [key, def] of Object.entries(keys)) {
+    if (def.contexts && elementType && !def.contexts.includes(elementType)) {
+      continue;
+    }
+    // table_list can always have more items added (via the [+] on its header)
+    // table can only be added once
+    if (def.type === "table" && !existingKeys.has(key)) {
+      addable.push({ key, def });
+    }
+  }
+
+  return addable;
+}
+
+/**
+ * Create a new sub-node with all defaults for a given child context.
+ */
+export function createDefaultNode(childContext: string, schemaOverride?: any): { key: string; value: any }[] {
+  const keys = getContextKeys(childContext, schemaOverride);
+  const params: { key: string; value: any }[] = [];
+
+  for (const [key, def] of Object.entries(keys)) {
+    if (!isOptionalNode(def) && def.default !== undefined) {
+      params.push({ key, value: structuredClone(def.default) });
+    }
+  }
+
+  return params;
+}

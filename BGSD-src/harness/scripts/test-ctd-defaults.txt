@@ -1,0 +1,10 @@
+wait app-root
+new ctd
+wait content-area
+shot ctd-defaults-top
+js document.querySelector('[data-testid="content-area"]').scrollTop = 400
+shot ctd-defaults-mid
+js document.querySelector('[data-testid="content-area"]').scrollTop = 99999
+shot ctd-defaults-bottom
+scad
+quit

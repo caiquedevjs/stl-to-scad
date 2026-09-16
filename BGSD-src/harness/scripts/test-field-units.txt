@@ -1,0 +1,8 @@
+wait app-root
+new bit
+intent "Numeric and numeric-like fields display schema-derived unit suffixes."
+js (() => { const inputs = document.querySelectorAll('.block-defaults input[value="all"]'); if (!inputs.length) throw new Error("block default controls not found"); inputs.forEach((input) => { if (!input.checked) input.click(); }); return `${inputs.length} block default controls set to all`; })()
+js (async () => { const add = async (title) => { for (const trigger of [...document.querySelectorAll('button.add-menu-trigger')]) { trigger.click(); await new Promise((r) => setTimeout(r, 50)); const item = [...document.querySelectorAll('button.add-menu-item')].find((b) => b.title === title); if (item) { item.click(); await new Promise((r) => setTimeout(r, 200)); return; } trigger.click(); } throw new Error(`${title} item not found`); }; await add('Add BOX_FEATURE block'); return 'feature added'; })()
+js document.querySelector('[data-testid="content-area"]').scrollTop = 0
+shot field_units
+js (() => { const units = [...document.querySelectorAll('.unit-suffix')].map((e) => e.textContent.trim()); if (!units.includes('mm')) throw new Error('mm unit suffix missing'); if (!units.includes('%')) throw new Error('percent unit suffix missing'); if (!units.includes('deg')) throw new Error('degree unit suffix missing'); return units.join(','); })()
