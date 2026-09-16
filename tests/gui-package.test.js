@@ -69,6 +69,13 @@ test("GUI keeps a separate lid name and orientation for every imported model", (
   assert.match(html, /const lidLabelOrientation = model\.lidLabelOrientation \?\? state\.settings\.lidLabelOrientation/);
 });
 
+test("GUI can disable the lid fitting underneath each box", () => {
+  const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
+  assert.match(html, /checkboxNode\("Encaixar tampa sob a caixa", model\.lidFitUnder !== false/);
+  assert.match(html, /model\.lidFitUnder = checked/);
+  assert.match(html, /\[ LID_FIT_UNDER_B, \$\{model\.lidFitUnder !== false\} \]/);
+});
+
 test("local server can listen on a container network interface", () => {
   const server = fs.readFileSync(path.join(root, "tools", "gui-server.js"), "utf8");
   const dockerfile = fs.readFileSync(path.join(root, "Dockerfile"), "utf8");

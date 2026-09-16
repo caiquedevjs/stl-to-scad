@@ -1408,6 +1408,7 @@
           lidLabelOrientation: state.settings.lidLabelOrientation,
           lidLabelTextCustomized: false,
           lidLabelOrientationCustomized: false,
+          lidFitUnder: true,
           featureEnabled: true,
           noLid: state.settings.noLid,
           manualDimensions: true,
@@ -1652,6 +1653,7 @@
         lidLabelOrientation: state.settings.lidLabelOrientation,
         lidLabelTextCustomized: false,
         lidLabelOrientationCustomized: false,
+        lidFitUnder: true,
         featureEnabled: state.settings.featureEnabled,
         noLid: state.settings.noLid,
         manualDimensions: false,
@@ -1934,6 +1936,11 @@
       const wrap = document.createElement("div");
       wrap.className = "settings-grid";
       wrap.style.marginTop = "0";
+      const fitUnder = checkboxNode("Encaixar tampa sob a caixa", model.lidFitUnder !== false, (checked) => {
+        model.lidFitUnder = checked;
+        renderPreview();
+      });
+      fitUnder.querySelector("input").disabled = model.noLid;
       wrap.append(
         checkboxNode("Feature", model.featureEnabled, (checked) => {
           model.featureEnabled = checked;
@@ -1941,8 +1948,9 @@
         }),
         checkboxNode("Sem tampa", model.noLid, (checked) => {
           model.noLid = checked;
-          renderPreview();
+          render();
         }),
+        fitUnder,
       );
       wrap.append(labelNode("Tampa", selectNode(["LID_CAP", "LID_INSET", "LID_SLIDING"], model.lidType, (value) => {
         model.lidType = value;
@@ -2121,6 +2129,7 @@
         if (!model.noLid) {
           lines.push("        [ BOX_LID,");
           lines.push(`            [ LID_TYPE, ${model.lidType || state.settings.lidType} ],`);
+          lines.push(`            [ LID_FIT_UNDER_B, ${model.lidFitUnder !== false} ],`);
           const lidLabelText = model.lidLabelText ?? state.settings.lidLabelText;
           const lidLabelOrientation = model.lidLabelOrientation ?? state.settings.lidLabelOrientation;
           const lidLabelRotation = lidLabelOrientation === "VERTICAL" ? 90 : 0;
