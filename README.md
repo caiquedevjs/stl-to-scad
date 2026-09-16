@@ -136,6 +136,71 @@ node .\tools\gui-server.js --port=5500 --open
 
 ou pela variavel `STL_BGSD_GUI_PORT`.
 
+## Executar com Docker
+
+Docker empacota Node.js, dependencias npm, OpenSCAD, display virtual e biblioteca
+BIT. Na outra maquina, basta instalar Docker Desktop ou Docker Engine; nao e
+necessario instalar Node.js e OpenSCAD separadamente.
+
+### Docker Compose
+
+Construa e inicie o servico:
+
+```powershell
+docker compose up --build -d
+```
+
+Abra:
+
+```text
+http://localhost:43721/
+```
+
+Consulte o estado e os logs:
+
+```powershell
+docker compose ps
+docker compose logs -f stl-to-bgsd
+```
+
+Pare o ambiente com:
+
+```powershell
+docker compose down
+```
+
+Depois do primeiro build, as proximas inicializacoes podem usar somente:
+
+```powershell
+docker compose up -d
+```
+
+### Docker sem Compose
+
+```powershell
+docker build -t stl-to-bgsd .
+docker run --name stl-to-bgsd --rm -p 43721:43721 stl-to-bgsd
+```
+
+A imagem executa OpenSCAD com `xvfb`, permitindo renderizacao sem interface
+grafica. O endpoint `/api/health` e usado pelo health check do contêiner.
+
+Downloads feitos pela interface sao salvos normalmente pelo navegador no
+computador do usuario; o contêiner nao precisa armazenar esses arquivos.
+
+> A aplicacao nao possui autenticacao. A configuracao fornecida publica somente
+> a porta local. Nao exponha esse contêiner diretamente na internet. Para uso
+> remoto, adicione proxy reverso, HTTPS, autenticacao e limites de requisicao.
+
+### Portabilidade e escala
+
+A imagem resolve a instalacao do ambiente e permite reproduzir a aplicacao em
+outras maquinas. Ela nao transforma automaticamente o servidor em um servico
+multiusuario: a renderizacao OpenSCAD e intensiva e cada instancia possui CPU,
+memoria e limite de tempo proprios. Para uma implantacao publica, a evolucao
+recomendada e separar a API web dos workers de renderizacao, usar uma fila de
+jobs, limitar concorrencia e executar varias replicas dos workers.
+
 ## Uso da interface
 
 ### Converter um insert STL
@@ -323,6 +388,7 @@ my_designs/                    Saidas locais de exemplo
 | Variavel | Uso |
 | --- | --- |
 | `OPENSCAD_PATH` | Caminho do OpenSCAD. |
+| `STL_BGSD_GUI_HOST` | Interface de rede; padrao local: `127.0.0.1`. |
 | `STL_BGSD_GUI_PORT` | Porta do servidor; padrao: `43721`. |
 | `STL_BGSD_RENDER_TIMEOUT_MS` | Limite de render; padrao: `600000` ms. |
 
@@ -379,8 +445,10 @@ ou parcialmente obstruido.
 
 ## Privacidade
 
-O servidor escuta somente em `127.0.0.1`. STL, 3MF e SCAD sao processados na
-maquina local e nao sao enviados a servicos externos pelo codigo do projeto.
+Fora do Docker, o servidor escuta somente em `127.0.0.1` por padrao. No Compose,
+ele escuta `0.0.0.0` dentro do contêiner, mas a porta e vinculada a
+`127.0.0.1` no computador hospedeiro. STL, 3MF e SCAD sao processados localmente
+e nao sao enviados a servicos externos pelo codigo do projeto.
 
 ## Licencas
 

@@ -10,7 +10,7 @@ const fidelity = require("./validate-fidelity.js");
 const { read3mfInventory, export3mfStl, planInsert } = require("./game-insert.js");
 
 const root = path.join(__dirname, "..");
-const host = "127.0.0.1";
+const host = process.env.STL_BGSD_GUI_HOST || "127.0.0.1";
 const defaultPort = 43721;
 const maxRequestBytes = 64 * 1024 * 1024;
 const configuredRenderTimeout = Number(process.env.STL_BGSD_RENDER_TIMEOUT_MS || 600000);

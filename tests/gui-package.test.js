@@ -59,6 +59,27 @@ test("GUI emits horizontal or vertical rotation for the lid name", () => {
   assert.match(html, /\[ ROTATION, \$\{formatScadValue\(rotation\)\} \]/);
 });
 
+test("GUI keeps a separate lid name and orientation for every imported model", () => {
+  const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
+  assert.match(html, /<th>Nome da tampa<\/th>/);
+  assert.match(html, /function lidLabelNode\(model\)/);
+  assert.match(html, /model\.lidLabelTextCustomized = true/);
+  assert.match(html, /model\.lidLabelOrientationCustomized = true/);
+  assert.match(html, /const lidLabelText = model\.lidLabelText \?\? state\.settings\.lidLabelText/);
+  assert.match(html, /const lidLabelOrientation = model\.lidLabelOrientation \?\? state\.settings\.lidLabelOrientation/);
+});
+
+test("local server can listen on a container network interface", () => {
+  const server = fs.readFileSync(path.join(root, "tools", "gui-server.js"), "utf8");
+  const dockerfile = fs.readFileSync(path.join(root, "Dockerfile"), "utf8");
+  const compose = fs.readFileSync(path.join(root, "docker-compose.yml"), "utf8");
+  assert.match(server, /process\.env\.STL_BGSD_GUI_HOST \|\| "127\.0\.0\.1"/);
+  assert.match(dockerfile, /OPENSCAD_PATH=\/usr\/local\/bin\/openscad-headless/);
+  assert.match(dockerfile, /HEALTHCHECK/);
+  assert.match(compose, /127\.0\.0\.1:43721:43721/);
+  assert.match(compose, /STL_BGSD_GUI_HOST: 0\.0\.0\.0/);
+});
+
 test("GUI shows render progress, elapsed time, and a learned estimate", () => {
   const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
   assert.match(html, /id="renderDialog"/);

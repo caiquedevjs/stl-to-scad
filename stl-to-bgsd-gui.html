@@ -760,11 +760,11 @@
               <input id="boxLabelText" placeholder="ex: Tiles">
             </label>
             <label>
-              Nome da tampa
+              Nome padrao da tampa
               <input id="lidLabelText" placeholder="ex: Tokens">
             </label>
             <label>
-              Orientacao do nome da tampa
+              Orientacao padrao da tampa
               <select id="lidLabelOrientation">
                 <option value="HORIZONTAL">Horizontal</option>
                 <option value="VERTICAL">Vertical</option>
@@ -911,6 +911,7 @@
                   <th>BOX_SIZE_XYZ</th>
                   <th>FTR_COMPARTMENT_SIZE_XYZ</th>
                   <th>Shape</th>
+                  <th>Nome da tampa</th>
                   <th>Opcoes</th>
                 </tr>
               </thead>
@@ -1211,6 +1212,12 @@
       els[id].addEventListener("input", () => {
         state.settings[id] = els[id].value;
         if (id === "shape") applyDefaultShape();
+        if (id === "lidLabelText" || id === "lidLabelOrientation") {
+          const customizedKey = `${id}Customized`;
+          for (const model of state.files) {
+            if (!model[customizedKey]) model[id] = state.settings[id];
+          }
+        }
         render();
       });
     }
@@ -1397,6 +1404,10 @@
           bottomThickness: plan.floor,
           shape: "SQUARE",
           lidType: state.settings.lidType,
+          lidLabelText: state.settings.lidLabelText,
+          lidLabelOrientation: state.settings.lidLabelOrientation,
+          lidLabelTextCustomized: false,
+          lidLabelOrientationCustomized: false,
           featureEnabled: true,
           noLid: state.settings.noLid,
           manualDimensions: true,
@@ -1637,6 +1648,10 @@
         bottomThickness,
         shape: state.settings.shape,
         lidType: state.settings.lidType,
+        lidLabelText: state.settings.lidLabelText,
+        lidLabelOrientation: state.settings.lidLabelOrientation,
+        lidLabelTextCustomized: false,
+        lidLabelOrientationCustomized: false,
         featureEnabled: state.settings.featureEnabled,
         noLid: state.settings.noLid,
         manualDimensions: false,
@@ -1800,6 +1815,7 @@
             model.shape = value;
             renderPreview();
           })),
+          cell(lidLabelNode(model)),
           cell(optionsNode(model)),
         );
         els.fileRows.appendChild(tr);
@@ -1892,6 +1908,26 @@
       label.textContent = text;
       label.appendChild(child);
       return label;
+    }
+
+    function lidLabelNode(model) {
+      const wrap = document.createElement("div");
+      wrap.className = "settings-grid";
+      wrap.style.marginTop = "0";
+      const text = inputNode(model.lidLabelText ?? state.settings.lidLabelText, (value) => {
+        model.lidLabelText = sanitizeScadString(value);
+        model.lidLabelTextCustomized = true;
+        renderPreview();
+      });
+      text.placeholder = model.name || "Tampa";
+      const orientation = selectNode(["HORIZONTAL", "VERTICAL"],
+        model.lidLabelOrientation ?? state.settings.lidLabelOrientation, (value) => {
+          model.lidLabelOrientation = value;
+          model.lidLabelOrientationCustomized = true;
+          renderPreview();
+        });
+      wrap.append(labelNode("Texto", text), labelNode("Orientacao", orientation));
+      return wrap;
     }
 
     function optionsNode(model) {
@@ -2085,8 +2121,10 @@
         if (!model.noLid) {
           lines.push("        [ BOX_LID,");
           lines.push(`            [ LID_TYPE, ${model.lidType || state.settings.lidType} ],`);
-          const lidLabelRotation = state.settings.lidLabelOrientation === "VERTICAL" ? 90 : 0;
-          renderLabelLines(lines, "            ", state.settings.lidLabelText, "lid label", lidLabelRotation);
+          const lidLabelText = model.lidLabelText ?? state.settings.lidLabelText;
+          const lidLabelOrientation = model.lidLabelOrientation ?? state.settings.lidLabelOrientation;
+          const lidLabelRotation = lidLabelOrientation === "VERTICAL" ? 90 : 0;
+          renderLabelLines(lines, "            ", lidLabelText, `${model.name} lid label`, lidLabelRotation);
           lines.push("        ],");
         }
         renderLabelLines(lines, "        ", state.settings.boxLabelText, `${model.name} label`);

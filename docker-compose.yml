@@ -1,0 +1,17 @@
+services:
+  stl-to-bgsd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: stl-to-bgsd:local
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:43721:43721"
+    environment:
+      STL_BGSD_GUI_HOST: 0.0.0.0
+      STL_BGSD_GUI_PORT: 43721
+      STL_BGSD_RENDER_TIMEOUT_MS: 600000
+      OPENSCAD_PATH: /usr/local/bin/openscad-headless
+    security_opt:
+      - no-new-privileges:true
