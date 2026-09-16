@@ -1,0 +1,1501 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>STL to BGSD</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f4;
+      --panel: #ffffff;
+      --panel-soft: #f0f4f1;
+      --ink: #202421;
+      --muted: #69716c;
+      --line: #d8ded8;
+      --accent: #176c63;
+      --accent-2: #9b5b28;
+      --danger: #a33b36;
+      --focus: #0f7c90;
+      --code-bg: #18211f;
+      --code-ink: #e8f1ed;
+      --shadow: 0 16px 40px rgba(26, 32, 29, 0.12);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 6px;
+      min-height: 36px;
+      padding: 0 14px;
+      color: #fff;
+      background: var(--accent);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      filter: brightness(0.95);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    button.secondary {
+      background: #e7ece8;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    button.warn {
+      background: var(--accent-2);
+    }
+
+    button.danger {
+      background: #f5e6e5;
+      border: 1px solid #e2b9b6;
+      color: var(--danger);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink);
+      background: #fff;
+      min-height: 36px;
+      padding: 7px 9px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus,
+    button:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 0;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .brand {
+      display: grid;
+      gap: 2px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(270px, 340px) minmax(480px, 1fr) minmax(360px, 0.95fr);
+      gap: 16px;
+      padding: 16px;
+      min-height: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .panel-body {
+      padding: 14px;
+      overflow: auto;
+      min-height: 0;
+    }
+
+    .dropzone {
+      min-height: 170px;
+      border: 1px dashed #9aa8a0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #fbfcfb 0%, #edf4f1 100%);
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 10px;
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .dropzone.is-dragging {
+      border-color: var(--accent);
+      background: #e7f2ef;
+    }
+
+    .dropzone strong {
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .settings-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .settings-grid.two {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .switches {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 10px;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .switch input {
+      width: auto;
+      min-height: 0;
+      accent-color: var(--accent);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .metric {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 10px;
+      min-height: 66px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      min-height: 280px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #f8faf8;
+      z-index: 2;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    td input,
+    td select {
+      min-height: 32px;
+      padding: 5px 7px;
+      font-size: 12px;
+    }
+
+    .dim-inputs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(58px, 1fr));
+      gap: 5px;
+      min-width: 190px;
+    }
+
+    .file-name {
+      display: grid;
+      gap: 4px;
+      min-width: 180px;
+    }
+
+    .file-name span {
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 12px;
+      min-height: 18px;
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 42px 16px;
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+    }
+
+    .preview-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      min-height: 520px;
+      height: calc(100vh - 250px);
+      resize: vertical;
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--code-ink);
+      background: var(--code-bg);
+      border-color: #31413b;
+      white-space: pre;
+    }
+
+    .note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1180px) {
+      .workspace {
+        grid-template-columns: 320px 1fr;
+      }
+
+      .preview-panel {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        justify-content: flex-start;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+
+      .settings-grid.two,
+      .summary,
+      .preview-controls {
+        grid-template-columns: 1fr;
+      }
+
+      textarea {
+        height: 460px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>STL to BGSD</h1>
+        <p>Conversor visual para gerar OpenSCAD editavel pela Boardgame Insert Toolkit.</p>
+      </div>
+      <div class="toolbar">
+        <button id="downloadCombined" disabled>Baixar SCAD combinado</button>
+        <button id="downloadEach" class="secondary" disabled>Baixar SCADs individuais</button>
+        <button id="clearFiles" class="danger" disabled>Limpar</button>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <aside class="panel">
+        <div class="panel-header">
+          <h2>Entrada e padroes</h2>
+        </div>
+        <div class="panel-body">
+          <label class="dropzone" id="dropzone">
+            <input id="fileInput" class="file-input" type="file" accept=".stl,model/stl" multiple>
+            <strong>Solte arquivos STL aqui</strong>
+            <span>ou clique para selecionar pecas, bandejas e inserts.</span>
+            <button type="button" class="secondary" id="pickFiles">Selecionar STL</button>
+          </label>
+
+          <div class="summary">
+            <div class="metric">
+              <span>Arquivos</span>
+              <strong id="metricFiles">0</strong>
+            </div>
+            <div class="metric">
+              <span>Triangulos</span>
+              <strong id="metricTriangles">0</strong>
+            </div>
+            <div class="metric">
+              <span>Volume alvo</span>
+              <strong id="metricLargest">0 mm</strong>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            <label>
+              Biblioteca BIT
+              <input id="includeFile" value="">
+            </label>
+          </div>
+
+          <div class="settings-grid two">
+            <label>
+              Folga da cavidade
+              <input id="clearance" type="number" step="0.1" value="0">
+            </label>
+            <label>
+              Parede da caixa
+              <input id="wall" type="number" step="0.1" value="2">
+            </label>
+            <label>
+              Fundo
+              <input id="bottom" type="number" step="0.1" value="2">
+            </label>
+            <label>
+              Altura extra
+              <input id="heightExtra" type="number" step="0.1" value="0">
+            </label>
+            <label>
+              Escala STL
+              <input id="scale" type="number" step="0.01" value="1">
+            </label>
+            <label>
+              Formato
+              <select id="shape">
+                <option value="SQUARE">SQUARE</option>
+                <option value="ROUND">ROUND</option>
+                <option value="FILLET">FILLET</option>
+                <option value="HEX">HEX</option>
+                <option value="OCT">OCT</option>
+              </select>
+            </label>
+            <label>
+              Tolerancia BIT
+              <input id="tolerance" type="number" step="0.05" value="0.1">
+            </label>
+            <label>
+              Saida BIT
+              <select id="printTypes">
+                <option value="ALL">Todos</option>
+                <option value="BOX">BOX</option>
+                <option value="LID">LID</option>
+                <option value="DIVIDERS">DIVIDERS</option>
+              </select>
+            </label>
+            <label>
+              Tipo de tampa
+              <select id="lidType">
+                <option value="LID_CAP">LID_CAP</option>
+                <option value="LID_INSET">LID_INSET</option>
+                <option value="LID_SLIDING">LID_SLIDING</option>
+              </select>
+            </label>
+            <label>
+              Texto da caixa
+              <input id="boxLabelText" placeholder="ex: Tiles">
+            </label>
+            <label>
+              Texto da tampa
+              <input id="lidLabelText" placeholder="ex: Tokens">
+            </label>
+            <label>
+              Posicao do texto
+              <select id="labelPlacement">
+                <option value="CENTER">CENTER</option>
+                <option value="FRONT">FRONT</option>
+                <option value="BACK">BACK</option>
+                <option value="LEFT">LEFT</option>
+                <option value="RIGHT">RIGHT</option>
+                <option value="BOTTOM">BOTTOM</option>
+              </select>
+            </label>
+            <label>
+              Tamanho do texto
+              <input id="labelSize" value="AUTO">
+            </label>
+            <label>
+              Profundidade do texto
+              <input id="labelDepth" type="number" step="0.1" value="0.2">
+            </label>
+            <label>
+              Aberturas
+              <select id="cutoutMode">
+                <option value="none">Nenhuma</option>
+                <option value="selected">Lados selecionados</option>
+                <option value="alternate-lr">Alternar esquerda/direita</option>
+                <option value="all">Todos os lados</option>
+              </select>
+            </label>
+            <label>
+              Tipo da abertura
+              <select id="cutoutType">
+                <option value="BOTH">BOTH</option>
+                <option value="INTERIOR">INTERIOR</option>
+                <option value="EXTERIOR">EXTERIOR</option>
+              </select>
+            </label>
+            <label>
+              Altura abertura %
+              <input id="cutoutHeightPct" type="number" step="5" value="100">
+            </label>
+            <label>
+              Profundidade abertura %
+              <input id="cutoutDepthPct" type="number" step="5" value="25">
+            </label>
+            <label>
+              Largura abertura %
+              <input id="cutoutWidthPct" type="number" step="5" value="50">
+            </label>
+          </div>
+
+          <div class="switches">
+            <label class="switch">
+              Criar BOX_FEATURE inicial
+              <input id="featureEnabled" type="checkbox" checked>
+            </label>
+            <label class="switch">
+              Caixa sem tampa
+              <input id="noLid" type="checkbox" checked>
+            </label>
+            <label class="switch">
+              Atualizar dimensoes automaticamente
+              <input id="autoDimensions" type="checkbox" checked>
+            </label>
+            <label class="switch">
+              Detectar componentes internos
+              <input id="detectComponents" type="checkbox" checked>
+            </label>
+            <label class="switch">
+              Colorizar preview BIT
+              <input id="colorize" type="checkbox" checked>
+            </label>
+            <label class="switch">
+              Texto nos compartimentos
+              <input id="featureLabels" type="checkbox">
+            </label>
+            <label class="switch">
+              Abertura frente
+              <input id="cutoutFront" type="checkbox">
+            </label>
+            <label class="switch">
+              Abertura atras
+              <input id="cutoutBack" type="checkbox">
+            </label>
+            <label class="switch">
+              Abertura esquerda
+              <input id="cutoutLeft" type="checkbox" checked>
+            </label>
+            <label class="switch">
+              Abertura direita
+              <input id="cutoutRight" type="checkbox" checked>
+            </label>
+            <label class="switch">
+              Abertura no fundo
+              <input id="cutoutBottom" type="checkbox">
+            </label>
+          </div>
+
+          <p class="note">Os controles geram chaves do schema BIT: OBJECT_BOX, BOX_SIZE_XYZ, BOX_FEATURE, FTR_COMPARTMENT_SIZE_XYZ, LABEL, BOX_LID e FTR_CUTOUT_*.</p>
+        </div>
+      </aside>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Arquivos e dimensoes</h2>
+          <div class="status" id="statusText">Nenhum STL carregado.</div>
+        </div>
+        <div class="panel-body">
+          <div id="emptyState" class="empty">Carregue um ou mais STL para medir e configurar os inserts.</div>
+          <div id="tableWrap" class="table-wrap" hidden>
+            <table>
+              <thead>
+                <tr>
+                  <th>Arquivo</th>
+                  <th>Medida STL</th>
+                  <th>Nome BGSD</th>
+                  <th>BOX_SIZE_XYZ</th>
+                  <th>FTR_COMPARTMENT_SIZE_XYZ</th>
+                  <th>Shape</th>
+                  <th>Opcoes</th>
+                </tr>
+              </thead>
+              <tbody id="fileRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel preview-panel">
+        <div class="panel-header">
+          <h2>OpenSCAD gerado</h2>
+          <div class="status" id="previewStatus">Aguardando STL.</div>
+        </div>
+        <div class="panel-body">
+          <div class="preview-controls">
+            <label>
+              Visualizar
+              <select id="previewSelect">
+                <option value="combined">Combinado</option>
+              </select>
+            </label>
+            <label>
+              Nome do arquivo combinado
+              <input id="combinedName" value="all-inserts.scad">
+            </label>
+          </div>
+          <textarea id="scadPreview" spellcheck="false" readonly></textarea>
+          <p class="note">Abra o `.scad` baixado no BGSD para continuar refinando medidas, tampas, dividers, labels e grupos de impressao.</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const state = {
+      files: [],
+      nextId: 1,
+      settings: {
+        includeFile: defaultIncludePath(),
+        clearance: 0,
+        wall: 2,
+        bottom: 2,
+        heightExtra: 0,
+        scale: 1,
+        shape: "SQUARE",
+        tolerance: 0.1,
+        printTypes: "ALL",
+        lidType: "LID_CAP",
+        boxLabelText: "",
+        lidLabelText: "",
+        labelPlacement: "CENTER",
+        labelSize: "AUTO",
+        labelDepth: 0.2,
+        cutoutMode: "none",
+        cutoutType: "BOTH",
+        cutoutHeightPct: 100,
+        cutoutDepthPct: 25,
+        cutoutWidthPct: 50,
+        featureEnabled: true,
+        noLid: true,
+        autoDimensions: true,
+        detectComponents: true,
+        colorize: true,
+        featureLabels: false,
+        cutoutFront: false,
+        cutoutBack: false,
+        cutoutLeft: true,
+        cutoutRight: true,
+        cutoutBottom: false,
+      },
+    };
+
+    const els = {
+      dropzone: document.getElementById("dropzone"),
+      fileInput: document.getElementById("fileInput"),
+      pickFiles: document.getElementById("pickFiles"),
+      includeFile: document.getElementById("includeFile"),
+      clearance: document.getElementById("clearance"),
+      wall: document.getElementById("wall"),
+      bottom: document.getElementById("bottom"),
+      heightExtra: document.getElementById("heightExtra"),
+      scale: document.getElementById("scale"),
+      shape: document.getElementById("shape"),
+      tolerance: document.getElementById("tolerance"),
+      printTypes: document.getElementById("printTypes"),
+      lidType: document.getElementById("lidType"),
+      boxLabelText: document.getElementById("boxLabelText"),
+      lidLabelText: document.getElementById("lidLabelText"),
+      labelPlacement: document.getElementById("labelPlacement"),
+      labelSize: document.getElementById("labelSize"),
+      labelDepth: document.getElementById("labelDepth"),
+      cutoutMode: document.getElementById("cutoutMode"),
+      cutoutType: document.getElementById("cutoutType"),
+      cutoutHeightPct: document.getElementById("cutoutHeightPct"),
+      cutoutDepthPct: document.getElementById("cutoutDepthPct"),
+      cutoutWidthPct: document.getElementById("cutoutWidthPct"),
+      featureEnabled: document.getElementById("featureEnabled"),
+      noLid: document.getElementById("noLid"),
+      autoDimensions: document.getElementById("autoDimensions"),
+      detectComponents: document.getElementById("detectComponents"),
+      colorize: document.getElementById("colorize"),
+      featureLabels: document.getElementById("featureLabels"),
+      cutoutFront: document.getElementById("cutoutFront"),
+      cutoutBack: document.getElementById("cutoutBack"),
+      cutoutLeft: document.getElementById("cutoutLeft"),
+      cutoutRight: document.getElementById("cutoutRight"),
+      cutoutBottom: document.getElementById("cutoutBottom"),
+      metricFiles: document.getElementById("metricFiles"),
+      metricTriangles: document.getElementById("metricTriangles"),
+      metricLargest: document.getElementById("metricLargest"),
+      statusText: document.getElementById("statusText"),
+      previewStatus: document.getElementById("previewStatus"),
+      emptyState: document.getElementById("emptyState"),
+      tableWrap: document.getElementById("tableWrap"),
+      fileRows: document.getElementById("fileRows"),
+      previewSelect: document.getElementById("previewSelect"),
+      combinedName: document.getElementById("combinedName"),
+      scadPreview: document.getElementById("scadPreview"),
+      downloadCombined: document.getElementById("downloadCombined"),
+      downloadEach: document.getElementById("downloadEach"),
+      clearFiles: document.getElementById("clearFiles"),
+    };
+
+    const numericSettingIds = ["clearance", "wall", "bottom", "heightExtra", "scale", "tolerance", "labelDepth", "cutoutHeightPct", "cutoutDepthPct", "cutoutWidthPct"];
+    const textSettingIds = ["includeFile", "shape", "printTypes", "lidType", "boxLabelText", "lidLabelText", "labelPlacement", "labelSize", "cutoutMode", "cutoutType"];
+    const toggleSettingIds = ["featureEnabled", "noLid", "autoDimensions", "detectComponents", "colorize", "featureLabels", "cutoutFront", "cutoutBack", "cutoutLeft", "cutoutRight", "cutoutBottom"];
+
+    els.pickFiles.addEventListener("click", () => els.fileInput.click());
+    els.dropzone.addEventListener("click", (event) => {
+      if (event.target === els.pickFiles) return;
+      els.fileInput.click();
+    });
+    els.fileInput.addEventListener("change", () => addFiles([...els.fileInput.files]));
+
+    for (const eventName of ["dragenter", "dragover"]) {
+      els.dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        els.dropzone.classList.add("is-dragging");
+      });
+    }
+
+    for (const eventName of ["dragleave", "drop"]) {
+      els.dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        els.dropzone.classList.remove("is-dragging");
+      });
+    }
+
+    els.dropzone.addEventListener("drop", (event) => {
+      addFiles([...event.dataTransfer.files]);
+    });
+
+    for (const id of numericSettingIds) {
+      els[id].addEventListener("input", () => {
+        state.settings[id] = numberOrDefault(els[id].value, state.settings[id]);
+        if (id === "scale") rescaleAll();
+        if (state.settings.autoDimensions) recomputeAutoDimensions();
+        render();
+      });
+    }
+
+    for (const id of textSettingIds) {
+      els[id].addEventListener("input", () => {
+        state.settings[id] = els[id].value;
+        if (id === "shape") applyDefaultShape();
+        render();
+      });
+    }
+
+    for (const id of toggleSettingIds) {
+      els[id].addEventListener("change", () => {
+        state.settings[id] = els[id].checked;
+        if ((id === "autoDimensions" || id === "detectComponents") && state.settings.autoDimensions) recomputeAutoDimensions();
+        render();
+      });
+    }
+
+    els.previewSelect.addEventListener("change", renderPreview);
+    els.combinedName.addEventListener("input", render);
+    els.downloadCombined.addEventListener("click", downloadCombined);
+    els.downloadEach.addEventListener("click", downloadEach);
+    els.clearFiles.addEventListener("click", () => {
+      state.files = [];
+      els.fileInput.value = "";
+      render();
+    });
+
+    async function addFiles(files) {
+      const stls = files.filter((file) => /\.stl$/i.test(file.name));
+      if (stls.length === 0) {
+        setStatus("Nenhum arquivo .stl selecionado.");
+        return;
+      }
+
+      setStatus("Lendo STL...");
+      for (const file of stls) {
+        try {
+          const buffer = await file.arrayBuffer();
+          const bounds = readStlBounds(buffer, state.settings.scale);
+          const model = createModel(file.name, bounds);
+          state.files.push(model);
+        } catch (error) {
+          setStatus(`Erro em ${file.name}: ${error.message}`);
+        }
+      }
+      render();
+    }
+
+    function readStlBounds(arrayBuffer, scale) {
+      const view = new DataView(arrayBuffer);
+      const binaryFacetCount = arrayBuffer.byteLength >= 84 ? view.getUint32(80, true) : -1;
+      const binarySize = 84 + binaryFacetCount * 50;
+      const looksBinary = binaryFacetCount >= 0 && binarySize === arrayBuffer.byteLength;
+      return looksBinary
+        ? readBinaryStlBounds(view, binaryFacetCount, scale)
+        : readAsciiStlBounds(new TextDecoder("utf-8").decode(arrayBuffer), scale);
+    }
+
+    function emptyBounds() {
+      return {
+        min: [Infinity, Infinity, Infinity],
+        max: [-Infinity, -Infinity, -Infinity],
+        vertices: 0,
+        triangles: 0,
+        planes: { x: new Map(), y: new Map(), z: new Map() },
+      };
+    }
+
+    function includeVertex(bounds, x, y, z, scale) {
+      const values = [x * scale, y * scale, z * scale];
+      for (let axis = 0; axis < 3; axis++) {
+        if (values[axis] < bounds.min[axis]) bounds.min[axis] = values[axis];
+        if (values[axis] > bounds.max[axis]) bounds.max[axis] = values[axis];
+      }
+      bounds.vertices++;
+    }
+
+    function triangleArea(a, b, c) {
+      const ax = b[0] - a[0];
+      const ay = b[1] - a[1];
+      const az = b[2] - a[2];
+      const bx = c[0] - a[0];
+      const by = c[1] - a[1];
+      const bz = c[2] - a[2];
+      const cx = ay * bz - az * by;
+      const cy = az * bx - ax * bz;
+      const cz = ax * by - ay * bx;
+      return Math.sqrt(cx * cx + cy * cy + cz * cz) / 2;
+    }
+
+    function includeTriangle(bounds, pts) {
+      const area = triangleArea(pts[0], pts[1], pts[2]);
+      for (const [axis, index] of [["x", 0], ["y", 1], ["z", 2]]) {
+        const values = pts.map((pt) => pt[index]);
+        if (Math.max(...values) - Math.min(...values) < 0.02) {
+          const key = roundTo((values[0] + values[1] + values[2]) / 3, 2);
+          const planes = bounds.planes[axis];
+          planes.set(key, (planes.get(key) || 0) + area);
+        }
+      }
+    }
+
+    function readBinaryStlBounds(view, triangles, scale) {
+      const bounds = emptyBounds();
+      let offset = 84;
+      for (let i = 0; i < triangles; i++) {
+        offset += 12;
+        const pts = [];
+        for (let vertex = 0; vertex < 3; vertex++) {
+          const pt = [
+            view.getFloat32(offset, true) * scale,
+            view.getFloat32(offset + 4, true) * scale,
+            view.getFloat32(offset + 8, true) * scale,
+          ];
+          pts.push(pt);
+          includeVertex(
+            bounds,
+            pt[0],
+            pt[1],
+            pt[2],
+            1,
+          );
+          offset += 12;
+        }
+        includeTriangle(bounds, pts);
+        offset += 2;
+      }
+      bounds.triangles = triangles;
+      return finalizeBounds(bounds);
+    }
+
+    function readAsciiStlBounds(text, scale) {
+      const bounds = emptyBounds();
+      const vertexRe = /^\s*vertex\s+([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s+([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s+([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)/gim;
+      let match;
+      const pts = [];
+      while ((match = vertexRe.exec(text))) {
+        const pt = [Number(match[1]) * scale, Number(match[2]) * scale, Number(match[3]) * scale];
+        includeVertex(bounds, pt[0], pt[1], pt[2], 1);
+        pts.push(pt);
+        if (pts.length === 3) includeTriangle(bounds, pts.splice(0, 3));
+      }
+      bounds.triangles = Math.floor(bounds.vertices / 3);
+      return finalizeBounds(bounds);
+    }
+
+    function finalizeBounds(bounds) {
+      if (bounds.vertices === 0) throw new Error("nao encontrei vertices STL");
+      bounds.size = [
+        bounds.max[0] - bounds.min[0],
+        bounds.max[1] - bounds.min[1],
+        bounds.max[2] - bounds.min[2],
+      ];
+      return bounds;
+    }
+
+    function createModel(fileName, bounds) {
+      bounds.scale = state.settings.scale;
+      const detected = state.settings.detectComponents ? detectCompartments(bounds) : null;
+      const wallThickness = round(detected?.wallThickness || state.settings.wall);
+      const features = buildDetectedFeatures(fileName.replace(/\.stl$/i, ""), bounds, detected, wallThickness);
+      const model = {
+        id: String(state.nextId++),
+        fileName,
+        name: sanitizeScadString(fileName.replace(/\.stl$/i, "")),
+        bounds,
+        detected,
+        wallThickness,
+        shape: state.settings.shape,
+        lidType: state.settings.lidType,
+        featureEnabled: state.settings.featureEnabled,
+        noLid: state.settings.noLid,
+        manualDimensions: false,
+        boxSize: bounds.size.map(round),
+        features,
+        compartmentSize: features[0]?.size || [0, 0, 0],
+      };
+      return model;
+    }
+
+    function updateAutoDimensions(model) {
+      model.detected = state.settings.detectComponents ? detectCompartments(model.bounds) : null;
+      model.wallThickness = round(model.detected?.wallThickness || state.settings.wall);
+      model.boxSize = model.bounds.size.map(round);
+      model.features = buildDetectedFeatures(model.name, model.bounds, model.detected, model.wallThickness);
+      model.compartmentSize = model.features[0]?.size || [0, 0, 0];
+    }
+
+    function rescaleAll() {
+      for (const model of state.files) {
+        const originalScale = model.bounds.scale || 1;
+        const factor = state.settings.scale / originalScale;
+        model.bounds.min = model.bounds.min.map((value) => round(value * factor));
+        model.bounds.max = model.bounds.max.map((value) => round(value * factor));
+        model.bounds.size = model.bounds.size.map((value) => round(value * factor));
+        model.bounds.scale = state.settings.scale;
+        model.manualDimensions = false;
+      }
+    }
+
+    function recomputeAutoDimensions() {
+      for (const model of state.files) {
+        if (!model.manualDimensions) updateAutoDimensions(model);
+      }
+    }
+
+    function applyDefaultShape() {
+      for (const model of state.files) model.shape = state.settings.shape;
+    }
+
+    function render() {
+      syncControls();
+      renderMetrics();
+      renderRows();
+      renderPreviewOptions();
+      renderPreview();
+      const hasFiles = state.files.length > 0;
+      els.downloadCombined.disabled = !hasFiles;
+      els.downloadEach.disabled = !hasFiles;
+      els.clearFiles.disabled = !hasFiles;
+      els.emptyState.hidden = hasFiles;
+      els.tableWrap.hidden = !hasFiles;
+      setStatus(hasFiles ? `${state.files.length} arquivo(s) pronto(s).` : "Nenhum STL carregado.");
+    }
+
+    function syncControls() {
+      for (const id of numericSettingIds) els[id].value = state.settings[id];
+      for (const id of textSettingIds) els[id].value = state.settings[id];
+      for (const id of toggleSettingIds) els[id].checked = state.settings[id];
+    }
+
+    function renderMetrics() {
+      const triangles = state.files.reduce((total, model) => total + model.bounds.triangles, 0);
+      const largest = state.files.reduce((max, model) => Math.max(max, ...model.bounds.size), 0);
+      els.metricFiles.textContent = state.files.length;
+      els.metricTriangles.textContent = formatInteger(triangles);
+      els.metricLargest.textContent = state.files.length ? `${round(largest)} mm` : "0 mm";
+    }
+
+    function renderRows() {
+      els.fileRows.replaceChildren();
+      for (const model of state.files) {
+        const tr = document.createElement("tr");
+        tr.append(
+          cell(fileNameNode(model)),
+          cell(measuredNode(model)),
+          cell(inputNode(model.name, (value) => {
+            model.name = sanitizeScadString(value);
+            renderPreview();
+          })),
+          cell(dimNode(model.boxSize, (axis, value) => {
+            model.boxSize[axis] = numberOrDefault(value, model.boxSize[axis]);
+            model.manualDimensions = true;
+            renderPreview();
+          })),
+          cell(dimNode(model.compartmentSize, (axis, value) => {
+            model.compartmentSize[axis] = numberOrDefault(value, model.compartmentSize[axis]);
+            for (const feature of model.features || []) feature.size[axis] = model.compartmentSize[axis];
+            model.manualDimensions = true;
+            renderPreview();
+          })),
+          cell(selectNode(["SQUARE", "ROUND", "FILLET", "HEX", "HEX2", "OCT", "OCT2"], model.shape, (value) => {
+            model.shape = value;
+            renderPreview();
+          })),
+          cell(optionsNode(model)),
+        );
+        els.fileRows.appendChild(tr);
+      }
+    }
+
+    function fileNameNode(model) {
+      const wrap = document.createElement("div");
+      wrap.className = "file-name";
+      const strong = document.createElement("strong");
+      strong.textContent = model.fileName;
+      const meta = document.createElement("span");
+      const count = model.features?.length || 1;
+      meta.textContent = `${formatInteger(model.bounds.triangles)} triangulos, ${count} componente(s)`;
+      wrap.append(strong, meta);
+      return wrap;
+    }
+
+    function measuredNode(model) {
+      const wrap = document.createElement("div");
+      wrap.textContent = vec(model.bounds.size) + " mm";
+      return wrap;
+    }
+
+    function inputNode(value, onInput) {
+      const input = document.createElement("input");
+      input.value = value;
+      input.addEventListener("input", () => onInput(input.value));
+      return input;
+    }
+
+    function dimNode(values, onInput) {
+      const wrap = document.createElement("div");
+      wrap.className = "dim-inputs";
+      for (let axis = 0; axis < 3; axis++) {
+        const input = document.createElement("input");
+        input.type = "number";
+        input.step = "0.1";
+        input.value = values[axis];
+        input.setAttribute("aria-label", ["X", "Y", "Z"][axis]);
+        input.addEventListener("input", () => onInput(axis, input.value));
+        wrap.appendChild(input);
+      }
+      return wrap;
+    }
+
+    function selectNode(values, selected, onChange) {
+      const select = document.createElement("select");
+      for (const value of values) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        option.selected = value === selected;
+        select.appendChild(option);
+      }
+      select.addEventListener("change", () => onChange(select.value));
+      return select;
+    }
+
+    function labelNode(text, child) {
+      const label = document.createElement("label");
+      label.textContent = text;
+      label.appendChild(child);
+      return label;
+    }
+
+    function optionsNode(model) {
+      const wrap = document.createElement("div");
+      wrap.className = "settings-grid";
+      wrap.style.marginTop = "0";
+      wrap.append(
+        checkboxNode("Feature", model.featureEnabled, (checked) => {
+          model.featureEnabled = checked;
+          renderPreview();
+        }),
+        checkboxNode("Sem tampa", model.noLid, (checked) => {
+          model.noLid = checked;
+          renderPreview();
+        }),
+      );
+      wrap.append(labelNode("Tampa", selectNode(["LID_CAP", "LID_INSET", "LID_SLIDING"], model.lidType, (value) => {
+        model.lidType = value;
+        renderPreview();
+      })));
+      const reset = document.createElement("button");
+      reset.type = "button";
+      reset.className = "secondary";
+      reset.textContent = "Recalcular";
+      reset.addEventListener("click", () => {
+        model.manualDimensions = false;
+        updateAutoDimensions(model);
+        render();
+      });
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "danger";
+      remove.textContent = "Remover";
+      remove.addEventListener("click", () => {
+        state.files = state.files.filter((item) => item.id !== model.id);
+        render();
+      });
+      wrap.append(reset, remove);
+      return wrap;
+    }
+
+    function checkboxNode(labelText, checked, onChange) {
+      const label = document.createElement("label");
+      label.className = "switch";
+      const span = document.createElement("span");
+      span.textContent = labelText;
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = checked;
+      input.addEventListener("change", () => onChange(input.checked));
+      label.append(span, input);
+      return label;
+    }
+
+    function cell(child) {
+      const td = document.createElement("td");
+      td.appendChild(child);
+      return td;
+    }
+
+    function renderPreviewOptions() {
+      const selected = els.previewSelect.value;
+      els.previewSelect.replaceChildren();
+      const combined = document.createElement("option");
+      combined.value = "combined";
+      combined.textContent = "Combinado";
+      els.previewSelect.appendChild(combined);
+      for (const model of state.files) {
+        const option = document.createElement("option");
+        option.value = model.id;
+        option.textContent = model.name || model.fileName;
+        els.previewSelect.appendChild(option);
+      }
+      els.previewSelect.value = state.files.some((model) => model.id === selected) ? selected : "combined";
+    }
+
+    function renderPreview() {
+      if (state.files.length === 0) {
+        els.scadPreview.value = "";
+        els.previewStatus.textContent = "Aguardando STL.";
+        return;
+      }
+      const selected = els.previewSelect.value;
+      const models = selected === "combined"
+        ? state.files
+        : state.files.filter((model) => model.id === selected);
+      els.scadPreview.value = renderScad(models);
+      els.previewStatus.textContent = selected === "combined" ? "SCAD combinado." : "SCAD individual.";
+    }
+
+    function quoteScadString(value) {
+      return `"${String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+    }
+
+    function formatScadValue(value) {
+      if (value === true) return "true";
+      if (value === false) return "false";
+      const numeric = Number(value);
+      if (Number.isFinite(numeric) && String(value).trim() !== "") return String(round(numeric));
+      if (/^[A-Z][A-Z0-9_]*$/.test(String(value))) return String(value);
+      return quoteScadString(value);
+    }
+
+    function renderLabelLines(lines, indent, text, name) {
+      if (!String(text || "").trim()) return;
+      lines.push(`${indent}[ LABEL,`);
+      lines.push(`${indent}    [ NAME, ${quoteScadString(name)} ],`);
+      lines.push(`${indent}    [ LBL_TEXT, ${quoteScadString(text)} ],`);
+      lines.push(`${indent}    [ LBL_PLACEMENT, ${formatScadValue(state.settings.labelPlacement)} ],`);
+      lines.push(`${indent}    [ LBL_SIZE, ${formatScadValue(state.settings.labelSize)} ],`);
+      lines.push(`${indent}    [ LBL_DEPTH, ${formatScadValue(state.settings.labelDepth)} ],`);
+      lines.push(`${indent}],`);
+    }
+
+    function cutoutSidesForFeature(index) {
+      const mode = state.settings.cutoutMode;
+      if (mode === "none") return [false, false, false, false];
+      if (mode === "all") return [true, true, true, true];
+      if (mode === "alternate-lr") {
+        return index % 2 === 0 ? [false, false, true, false] : [false, false, false, true];
+      }
+      return [
+        state.settings.cutoutFront,
+        state.settings.cutoutBack,
+        state.settings.cutoutLeft,
+        state.settings.cutoutRight,
+      ];
+    }
+
+    function renderCutoutLines(lines, indent, featureIndex) {
+      const sides = cutoutSidesForFeature(featureIndex);
+      if (!sides.some(Boolean) && !state.settings.cutoutBottom) return;
+      if (sides.some(Boolean)) {
+        lines.push(`${indent}[ FTR_CUTOUT_SIDES_4B, ${vec(sides)} ],`);
+        lines.push(`${indent}[ FTR_CUTOUT_TYPE, ${formatScadValue(state.settings.cutoutType)} ],`);
+        lines.push(`${indent}[ FTR_CUTOUT_HEIGHT_PCT, ${formatScadValue(state.settings.cutoutHeightPct)} ],`);
+        lines.push(`${indent}[ FTR_CUTOUT_DEPTH_PCT, ${formatScadValue(state.settings.cutoutDepthPct)} ],`);
+        lines.push(`${indent}[ FTR_CUTOUT_WIDTH_PCT, ${formatScadValue(state.settings.cutoutWidthPct)} ],`);
+      }
+      if (state.settings.cutoutBottom) {
+        lines.push(`${indent}[ FTR_CUTOUT_BOTTOM_B, true ],`);
+      }
+    }
+
+    function renderScad(models) {
+      const lines = [
+        "// BGSD",
+        `include <${state.settings.includeFile || defaultIncludePath()}>;`,
+        "data = [",
+      ];
+
+      if (state.settings.printTypes !== "ALL") {
+        lines.push(`    [ G_PRINT_TYPES, ${state.settings.printTypes} ],`);
+      }
+      if (round(state.settings.tolerance) !== 0.1) {
+        lines.push(`    [ G_TOLERANCE, ${round(state.settings.tolerance)} ],`);
+      }
+      if (!state.settings.colorize) {
+        lines.push("    [ G_COLORIZE_B, false ],");
+      }
+
+      for (const model of models) {
+        lines.push(`    // Source STL: ${model.fileName}`);
+        lines.push(`    // STL bbox min ${vec(model.bounds.min)} max ${vec(model.bounds.max)} size ${vec(model.bounds.size)}`);
+        if (model.detected?.detected) {
+          lines.push(`    // Detected compartments: ${model.detected.componentCount}; wall thickness: ${round(model.wallThickness)}mm`);
+        }
+        lines.push("    [ OBJECT_BOX,");
+        lines.push(`        [ NAME, "${escapeScadString(model.name)}" ],`);
+        lines.push(`        [ BOX_SIZE_XYZ, ${vec(model.boxSize)} ],`);
+        lines.push(`        [ BOX_WALL_THICKNESS, ${round(model.wallThickness || state.settings.wall)} ],`);
+        if (model.noLid) lines.push("        [ BOX_NO_LID_B, true ],");
+        if (!model.noLid) {
+          lines.push("        [ BOX_LID,");
+          lines.push(`            [ LID_TYPE, ${model.lidType || state.settings.lidType} ],`);
+          renderLabelLines(lines, "            ", state.settings.lidLabelText, "lid label");
+          lines.push("        ],");
+        }
+        renderLabelLines(lines, "        ", state.settings.boxLabelText, `${model.name} label`);
+        if (model.featureEnabled) {
+          for (let featureIndex = 0; featureIndex < (model.features || []).length; featureIndex++) {
+            const feature = model.features[featureIndex];
+            lines.push("        [ BOX_FEATURE,");
+            lines.push(`            [ NAME, "${escapeScadString(feature.name)}" ],`);
+            lines.push(`            [ FTR_COMPARTMENT_SIZE_XYZ, ${vec(feature.size)} ],`);
+            lines.push("            [ FTR_NUM_COMPARTMENTS_XY, [1, 1] ],");
+            lines.push(`            [ FTR_SHAPE, ${model.shape || "SQUARE"} ],`);
+            lines.push(`            [ POSITION_XY, ${vec(feature.position)} ],`);
+            renderCutoutLines(lines, "            ", featureIndex);
+            if (state.settings.featureLabels) {
+              renderLabelLines(lines, "            ", feature.name.replace(/\s+cavity/i, ""), `${feature.name} label`);
+            }
+            lines.push("        ],");
+          }
+        }
+        lines.push("    ],");
+      }
+
+      lines.push("];");
+      lines.push("Make(data);");
+      lines.push("");
+      return lines.join("\n");
+    }
+
+    function downloadCombined() {
+      if (state.files.length === 0) return;
+      const fileName = normalizedScadName(els.combinedName.value || "all-inserts.scad");
+      downloadText(fileName, renderScad(state.files));
+    }
+
+    function downloadEach() {
+      for (const model of state.files) {
+        downloadText(`${slugFileName(model.name || model.fileName)}.scad`, renderScad([model]));
+      }
+    }
+
+    function downloadText(fileName, text) {
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function setStatus(text) {
+      els.statusText.textContent = text;
+    }
+
+    function numberOrDefault(value, fallback) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function detectCompartments(bounds) {
+      const xBands = detectWallBands(bounds.planes.x);
+      const yBands = detectWallBands(bounds.planes.y);
+      const wallThickness = median([...xBands, ...yBands].map((band) => band.width).filter((value) => value > 0)) || state.settings.wall;
+      const xIntervals = intervalsBetweenBands(xBands, bounds.min[0], bounds.max[0], wallThickness);
+      const yIntervals = intervalsBetweenBands(yBands, bounds.min[1], bounds.max[1], wallThickness);
+      const componentCount = xIntervals.length * yIntervals.length;
+      return { wallThickness, xIntervals, yIntervals, componentCount, detected: componentCount > 1 };
+    }
+
+    function detectWallBands(planeMap) {
+      const entries = [...planeMap.entries()].sort((a, b) => a[0] - b[0]);
+      if (entries.length < 2) return [];
+      const maxArea = Math.max(...entries.map((entry) => entry[1]));
+      const significant = entries
+        .filter(([, area]) => area >= maxArea * 0.3)
+        .sort((a, b) => a[0] - b[0]);
+      const bands = [];
+      for (let i = 0; i < significant.length - 1; i++) {
+        const low = significant[i][0];
+        const high = significant[i + 1][0];
+        const width = high - low;
+        if (width >= 0.35 && width <= 4) {
+          bands.push({ low, high, width: round(width) });
+          i++;
+        }
+      }
+      return bands;
+    }
+
+    function intervalsBetweenBands(bands, min, max, wallThickness) {
+      if (bands.length < 2) {
+        return [{ start: round(min + wallThickness), end: round(max - wallThickness), size: round(max - min - wallThickness * 2) }];
+      }
+      const intervals = [];
+      for (let i = 0; i < bands.length - 1; i++) {
+        const start = bands[i].high;
+        const end = bands[i + 1].low;
+        const size = end - start;
+        if (size > 5) intervals.push({ start: round(start), end: round(end), size: round(size) });
+      }
+      return intervals.length ? intervals : [{ start: round(min + wallThickness), end: round(max - wallThickness), size: round(max - min - wallThickness * 2) }];
+    }
+
+    function buildDetectedFeatures(name, bounds, detected, wallThickness) {
+      const xIntervals = detected?.xIntervals?.length ? detected.xIntervals : intervalsBetweenBands([], bounds.min[0], bounds.max[0], wallThickness);
+      const yIntervals = detected?.yIntervals?.length ? detected.yIntervals : intervalsBetweenBands([], bounds.min[1], bounds.max[1], wallThickness);
+      const compZ = Math.max(0.1, round(bounds.size[2] - wallThickness + state.settings.heightExtra));
+      const features = [];
+      for (let yIndex = 0; yIndex < yIntervals.length; yIndex++) {
+        for (let xIndex = 0; xIndex < xIntervals.length; xIndex++) {
+          const x = xIntervals[xIndex];
+          const y = yIntervals[yIndex];
+          const suffix = xIntervals.length * yIntervals.length > 1 ? ` ${features.length + 1}` : "";
+          features.push({
+            name: `${sanitizeScadString(name)} cavity${suffix}`,
+            size: [
+              round(x.size + state.settings.clearance * 2),
+              round(y.size + state.settings.clearance * 2),
+              compZ,
+            ],
+            position: [
+              round(x.start - bounds.min[0] - wallThickness - state.settings.clearance),
+              round(y.start - bounds.min[1] - wallThickness - state.settings.clearance),
+            ],
+          });
+        }
+      }
+      return features;
+    }
+
+    function defaultIncludePath() {
+      const fallback = "../lib/boardgame_insert_toolkit_lib.4.scad";
+      try {
+        if (window.location.protocol !== "file:") return fallback;
+        const url = new URL("lib/boardgame_insert_toolkit_lib.4.scad", window.location.href);
+        let pathname = decodeURIComponent(url.pathname);
+        if (/^\/[A-Za-z]:\//.test(pathname)) pathname = pathname.slice(1);
+        return pathname.replace(/\\/g, "/");
+      } catch {
+        return fallback;
+      }
+    }
+
+    function sanitizeScadString(value) {
+      return String(value || "insert").replace(/[\\"]/g, "_").trim() || "insert";
+    }
+
+    function escapeScadString(value) {
+      return String(value).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+    }
+
+    function slugFileName(value) {
+      return String(value || "insert")
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, "_")
+        .replace(/\s+/g, " ")
+        .trim() || "insert";
+    }
+
+    function normalizedScadName(value) {
+      const name = slugFileName(value);
+      return /\.scad$/i.test(name) ? name : `${name}.scad`;
+    }
+
+    function round(value) {
+      return Number(Number(value).toFixed(3));
+    }
+
+    function roundTo(value, digits) {
+      const factor = 10 ** digits;
+      return Math.round(value * factor) / factor;
+    }
+
+    function median(values) {
+      const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
+      if (!sorted.length) return null;
+      const middle = Math.floor(sorted.length / 2);
+      return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+    }
+
+    function vec(values) {
+      return `[${values.map((value) => typeof value === "number" ? round(value) : value).join(", ")}]`;
+    }
+
+    function formatInteger(value) {
+      return new Intl.NumberFormat("pt-BR").format(value);
+    }
+
+    render();
+  </script>
+</body>
+</html>
