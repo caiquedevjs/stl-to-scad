@@ -164,6 +164,39 @@ Make(data);`;
   }
 });
 
+test("keeps a partial divider local to the row it crosses", () => {
+  const sourceScad = `union() {
+    cube([100, 137, 0.8]);
+    cube([1.5, 137, 39]);
+    translate([98.5, 0, 0]) cube([1.5, 137, 39]);
+    cube([100, 1.5, 39]);
+    translate([0, 135.5, 0]) cube([100, 1.5, 39]);
+    translate([0, 67.75, 0]) cube([100, 1.5, 22]);
+    translate([49.25, 25, 0]) cube([1.5, 42.75, 22]);
+  }`;
+  const source = renderStl(sourceScad, "partial-divider.scad");
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "bgsd-partial-divider-test-"));
+  try {
+    const sourcePath = path.join(tempDir, "partial-divider.stl");
+    fs.writeFileSync(sourcePath, source.data);
+    const inferred = converter.createModel(sourcePath, converter.readStlBounds(sourcePath, 1), {
+      ...opts, bottom: 2, clearance: 0, heightExtra: 0,
+      fitContainer: false, detectComponents: true, inferGeometry: true,
+    });
+
+    assert.equal(inferred.detected.componentCount, 3);
+    assert.deepEqual(inferred.features.map((feature) => feature.size.slice(0, 2)), [
+      [47.75, 66.25],
+      [47.75, 66.25],
+      [97, 66.25],
+    ]);
+  } finally {
+    const resolved = path.resolve(tempDir);
+    if (resolved.startsWith(`${path.resolve(os.tmpdir())}${path.sep}`))
+      fs.rmSync(resolved, { recursive: true, force: true });
+  }
+});
+
 test("infers side cutouts and their dimensions from facet normals", () => {
   const geometryOpts = {
     ...opts,

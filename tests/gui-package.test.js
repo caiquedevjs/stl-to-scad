@@ -200,6 +200,19 @@ test("GUI suppresses ambiguous broad curved surfaces on multiple sides", () => {
   assert.match(html, /Ambiguous broad multi-side surfaces were not emitted as finger cutouts/);
 });
 
+test("GUI preserves wall bands for row-local partial dividers", () => {
+  const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
+  const detectStart = html.indexOf("    function detectCompartments(");
+  const detectEnd = html.indexOf("    function detectExternalProfileCuts(", detectStart);
+  const buildStart = html.indexOf("    function buildDetectedFeatures(");
+  const buildEnd = html.indexOf("    function inferCompartmentFloor(", buildStart);
+  const detectSource = html.slice(detectStart, detectEnd);
+  const buildSource = html.slice(buildStart, buildEnd);
+
+  assert.match(detectSource, /xBands,\s+yBands,\s+zBands,/);
+  assert.match(buildSource, /wallBandsForCrossInterval\(bounds, 0, detected\.xBands, y\)/);
+});
+
 test("GUI assigns separate floor levels to adjacent compartments", () => {
   const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
   const section = (start, end) => html.slice(html.indexOf(start), html.indexOf(end, html.indexOf(start)));

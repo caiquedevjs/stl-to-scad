@@ -403,6 +403,10 @@ function createModel(filePath, bounds, opts) {
   } else {
     boxSize = bounds.size.map(round);
     features = buildDetectedFeatures(name, bounds, detected, wallThickness, opts);
+    if (detected) {
+      detected.componentCount = features.filter((feature) => !feature.profileExtension).length;
+      detected.detected = detected.componentCount > 1;
+    }
   }
 
   return {
@@ -515,9 +519,11 @@ function detectSideCutouts(bounds, wallThickness, bottomThickness) {
     const depthValues = points.map((point) => (point[side.axis] - side.edge) * side.direction);
     const zValues = points.map((point) => point[2]);
     const crossSpan = Math.max(...crossValues) - Math.min(...crossValues);
-    const confidence = facets.length >= 8 && area >= 20 && crossSpan >= wallThickness * 2
+    const height = Math.max(...zValues) - Math.min(...zValues);
+    const minimumCutoutHeight = Math.max(2, wallThickness * 1.25);
+    const confidence = height >= minimumCutoutHeight && facets.length >= 8 && area >= 20 && crossSpan >= wallThickness * 2
       ? "high"
-      : facets.length >= 2 && area >= 8 && crossSpan >= wallThickness * 1.5 ? "medium" : "low";
+      : height >= minimumCutoutHeight && facets.length >= 2 && area >= 8 && crossSpan >= wallThickness * 1.5 ? "medium" : "low";
     return [{
       side: side.name,
       detected: confidence !== "low",
@@ -528,7 +534,7 @@ function detectSideCutouts(bounds, wallThickness, bottomThickness) {
       crossMax: Math.max(...crossValues),
       cutoutType: Math.min(...depthValues) <= Math.max(0.15, wallThickness * 0.5) ? "BOTH" : "INTERIOR",
       depth: Math.max(...depthValues) - Math.min(...depthValues),
-      height: Math.max(...zValues) - Math.min(...zValues),
+      height,
     }];
   });
 }
@@ -653,6 +659,15 @@ function detectWallBands(planeMap, minimum = null, maximum = null) {
 
   const maxArea = Math.max(...entries.map((entry) => entry[1]));
   const selected = new Map(entries.filter(([, area]) => area >= maxArea * 0.3));
+  for (let i = 0; i < entries.length - 1; i++) {
+    const [low, lowArea] = entries[i];
+    const [high, highArea] = entries[i + 1];
+    const width = high - low;
+    if (width >= 0.35 && width <= 4 && lowArea >= maxArea * 0.1 && highArea >= maxArea * 0.1) {
+      selected.set(low, lowArea);
+      selected.set(high, highArea);
+    }
+  }
   for (const [edge, direction] of [[minimum, 1], [maximum, -1]]) {
     if (!Number.isFinite(edge)) continue;
     const boundary = entries.find(([coordinate]) => Math.abs(coordinate - edge) <= 0.05);
@@ -684,7 +699,7 @@ function detectWallBands(planeMap, minimum = null, maximum = null) {
 function filterPartialInteriorBands(bounds, axis, bands) {
   if (bands.length <= 2) return bands;
   const crossAxis = axis === 0 ? 1 : 0;
-  const requiredSpan = bounds.size[crossAxis] * 0.75;
+  const requiredSpan = Math.max(5, bounds.size[crossAxis] * 0.2);
   return bands.filter((band, index) => {
     if (index === 0 || index === bands.length - 1) return true;
     const points = bounds.facets
@@ -694,6 +709,23 @@ function filterPartialInteriorBands(bounds, axis, bands) {
     if (!points.length) return false;
     const values = points.map((point) => point[crossAxis]);
     return Math.max(...values) - Math.min(...values) >= requiredSpan;
+  });
+}
+
+function wallBandsForCrossInterval(bounds, axis, bands, crossInterval) {
+  if (bands.length <= 2) return bands;
+  const crossAxis = axis === 0 ? 1 : 0;
+  return bands.filter((band, index) => {
+    if (index === 0 || index === bands.length - 1) return true;
+    const points = bounds.facets
+      .filter((facet) => Math.abs(facet.normal[axis]) >= 0.98 &&
+        (Math.abs(facet.centroid[axis] - band.low) <= 0.1 || Math.abs(facet.centroid[axis] - band.high) <= 0.1))
+      .flatMap((facet) => facet.points);
+    if (!points.length) return false;
+    const values = points.map((point) => point[crossAxis]);
+    const overlap = Math.max(0,
+      Math.min(Math.max(...values), crossInterval.end) - Math.max(Math.min(...values), crossInterval.start));
+    return overlap >= Math.max(5, crossInterval.size * 0.2);
   });
 }
 
@@ -728,12 +760,18 @@ function buildDetectedFeatures(name, bounds, detected, wallThickness, opts) {
   const bottomThickness = detected?.bottomThickness || opts.bottom;
   // BIT uses BOX_WALL_THICKNESS for both side walls and the floor.
   const features = [];
+  const rows = yIntervals.map((y) => ({
+    y,
+    xIntervals: detected?.xBands?.length
+      ? intervalsBetweenBands(wallBandsForCrossInterval(bounds, 0, detected.xBands, y), bounds.min[0], bounds.max[0], wallThickness)
+      : xIntervals,
+  }));
+  const cavityCount = rows.reduce((total, row) => total + row.xIntervals.length, 0);
 
-  for (let yIndex = 0; yIndex < yIntervals.length; yIndex++) {
-    for (let xIndex = 0; xIndex < xIntervals.length; xIndex++) {
-      const x = xIntervals[xIndex];
-      const y = yIntervals[yIndex];
-      const suffix = xIntervals.length * yIntervals.length > 1 ? ` ${features.length + 1}` : "";
+  for (const row of rows) {
+    for (const x of row.xIntervals) {
+      const y = row.y;
+      const suffix = cavityCount > 1 ? ` ${features.length + 1}` : "";
       const floor = inferCompartmentFloor(bounds, x, y, wallThickness);
       const floorHeight = Math.max(wallThickness, floor ? floor.z - bounds.min[2] : wallThickness);
       const compZ = Math.max(0.1, round(bounds.size[2] - floorHeight + opts.heightExtra));
@@ -811,15 +849,12 @@ function inferCompartmentFloor(bounds, xInterval, yInterval, wallThickness) {
 }
 
 function partitionIntervalsForProfileCuts(bounds, xIntervals, yIntervals, profileCuts, wallThickness) {
-  const adjustedY = yIntervals.map((interval) => ({ ...interval }));
+  let adjustedY = yIntervals.map((interval) => ({ ...interval }));
   const extensions = [];
   if (xIntervals.length !== 1) return { yIntervals: adjustedY, extensions };
 
   for (const cut of profileCuts) {
     const [ySide, xSide] = cut.corner.split("-");
-    const yIndex = ySide === "front" ? 0 : adjustedY.length - 1;
-    const target = adjustedY[yIndex];
-    if (!target) continue;
     const cutMinX = cut.min[0];
     const cutMaxX = cut.min[0] + cut.size[0];
     const cutMinY = cut.min[1];
@@ -832,9 +867,17 @@ function partitionIntervalsForProfileCuts(bounds, xIntervals, yIntervals, profil
       : [wallThickness, cutMaxY + wallThickness];
     const mainBoundary = ySide === "back" ? yLocal[0] : yLocal[1];
     const sourceBoundary = bounds.min[1] + mainBoundary;
+    const yIndex = adjustedY.findIndex((interval) =>
+      sourceBoundary >= interval.start - 0.1 && sourceBoundary <= interval.end + 0.1);
+    const targetIndex = yIndex >= 0 ? yIndex : (ySide === "front" ? 0 : adjustedY.length - 1);
+    const target = adjustedY[targetIndex];
+    if (!target) continue;
     if (ySide === "back") target.end = round(Math.min(target.end, sourceBoundary));
     else target.start = round(Math.max(target.start, sourceBoundary));
     target.size = round(target.end - target.start);
+    adjustedY = ySide === "back"
+      ? adjustedY.slice(0, targetIndex + 1)
+      : adjustedY.slice(targetIndex);
 
     const extension = {
       x: {
