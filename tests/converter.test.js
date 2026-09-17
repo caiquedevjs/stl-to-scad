@@ -209,6 +209,22 @@ test("infers side cutouts and their dimensions from facet normals", () => {
   assert.match(tokensBScad, /difference\(\) \{[\s\S]*back-right external step[\s\S]*cube\(\[19\.05, 11\.05, 28\.1\]\)/);
 });
 
+test("suppresses broad curved surfaces misidentified as cutouts on every side", () => {
+  const bounds = { min: [0, 0, 0], max: [78, 96.75, 45], size: [78, 96.75, 45] };
+  const x = { start: 4, end: 74, size: 70 };
+  const y = { start: 4, end: 92.75, size: 88.75 };
+  const cutouts = [
+    { side: "front", detected: true, confidence: "high", crossMin: 4, crossMax: 74, depth: 9, height: 36, cutoutType: "BOTH" },
+    { side: "back", detected: true, confidence: "high", crossMin: 4, crossMax: 74, depth: 9, height: 36, cutoutType: "BOTH" },
+    { side: "left", detected: true, confidence: "high", crossMin: 4, crossMax: 92.75, depth: 9, height: 36, cutoutType: "BOTH" },
+    { side: "right", detected: true, confidence: "high", crossMin: 4, crossMax: 92.75, depth: 9, height: 36, cutoutType: "BOTH" },
+  ];
+  const inferred = converter.inferCutoutsForInterval(cutouts, x, y, 41, bounds, 4);
+  assert.deepEqual(inferred.sides, [false, false, false, false]);
+  assert.equal(inferred.suppressed, true);
+  assert.match(inferred.reason, /broad curved surfaces/);
+});
+
 test("infers full-height side openings from gaps in planar wall faces", () => {
   const tilesPath = path.join(__dirname, "..", "Tiles.stl");
   const bounds = converter.readStlBounds(tilesPath, 1);

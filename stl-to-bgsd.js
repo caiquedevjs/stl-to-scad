@@ -747,8 +747,8 @@ function buildDetectedFeatures(name, bounds, detected, wallThickness, opts) {
           compZ,
         ],
         position: [
-          round(x.start - bounds.min[0] - wallThickness - opts.clearance),
-          round(y.start - bounds.min[1] - wallThickness - opts.clearance),
+          roundPosition(x.start - bounds.min[0] - wallThickness - opts.clearance),
+          roundPosition(y.start - bounds.min[1] - wallThickness - opts.clearance),
         ],
         sourceBounds: { x: [x.start, x.end], y: [y.start, y.end] },
         floorTopZ: floor?.z ?? null,
@@ -774,8 +774,8 @@ function buildDetectedFeatures(name, bounds, detected, wallThickness, opts) {
         compZ,
       ],
       position: [
-        round(extension.x.start - bounds.min[0] - wallThickness - opts.clearance),
-        round(extension.y.start - bounds.min[1] - wallThickness - opts.clearance),
+        roundPosition(extension.x.start - bounds.min[0] - wallThickness - opts.clearance),
+        roundPosition(extension.y.start - bounds.min[1] - wallThickness - opts.clearance),
       ],
       sourceBounds: { x: [extension.x.start, extension.x.end], y: [extension.y.start, extension.y.end] },
       floorTopZ: floor?.z ?? null,
@@ -883,6 +883,16 @@ function inferCutoutsForInterval(cutouts, xInterval, yInterval, featureHeight, b
       width: clampPercent(overlapWidth / crossInterval.size * 100, Math.min(95, printableWidthPct)),
     };
   });
+  const broadCurvedSides = active.filter((cutout, index) =>
+    !cutout.planarOpening && percentages[index].width >= 80 && percentages[index].height >= 60);
+  if (active.length >= 3 && broadCurvedSides.length >= 3) {
+    return {
+      sides: [false, false, false, false],
+      confidence: "low",
+      suppressed: true,
+      reason: "ambiguous broad curved surfaces on multiple sides",
+    };
+  }
   return {
     sides: matches.map(Boolean),
     confidence: active.every((cutout) => cutout.confidence === "high") ? "high" : "medium",
@@ -910,6 +920,11 @@ function slugFileName(value) {
 
 function round(value) {
   return Number(value.toFixed(3));
+}
+
+function roundPosition(value) {
+  const rounded = round(value);
+  return Math.abs(rounded) <= 0.01 ? 0 : rounded;
 }
 
 function roundTo(value, digits) {
@@ -1267,8 +1282,11 @@ function renderScad(models, opts, schema, config = {}) {
       lines.push(`    // Detected compartments: ${model.detected.componentCount}; wall thickness: ${round(model.wallThickness)}mm`);
     }
     lines.push(`    // Estimated bottom thickness: ${round(model.bottomThickness)}mm`);
+    const suppressedCutouts = (model.features || []).filter((feature) => feature.cutoutInference?.suppressed);
     const detectedCutouts = (model.detected?.cutouts || []).filter((cutout) => cutout.detected);
-    if (detectedCutouts.length) {
+    if (suppressedCutouts.length) {
+      lines.push("    // Ambiguous broad multi-side surfaces were not emitted as finger cutouts");
+    } else if (detectedCutouts.length) {
       lines.push(`    // Inferred side cutouts: ${detectedCutouts.map((cutout) => `${cutout.side} (${cutout.confidence})`).join(", ")}`);
     }
     const profileCuts = model.detected?.profileCuts || [];
@@ -1391,6 +1409,7 @@ module.exports = {
   detectExternalProfileCuts,
   detectFeatureShape,
   detectSideCutouts,
+  inferCutoutsForInterval,
   loadBitInputs,
   includePathForOutput,
   mergeProperties,

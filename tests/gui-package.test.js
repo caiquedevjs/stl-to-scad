@@ -194,6 +194,12 @@ test("geometry inference keeps two side openings on separate cavities", () => {
   }
 });
 
+test("GUI suppresses ambiguous broad curved surfaces on multiple sides", () => {
+  const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
+  assert.match(html, /broadCurvedSides\.length >= 3/);
+  assert.match(html, /Ambiguous broad multi-side surfaces were not emitted as finger cutouts/);
+});
+
 test("GUI assigns separate floor levels to adjacent compartments", () => {
   const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
   const section = (start, end) => html.slice(html.indexOf(start), html.indexOf(end, html.indexOf(start)));
