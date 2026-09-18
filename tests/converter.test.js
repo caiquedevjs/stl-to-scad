@@ -197,6 +197,91 @@ test("keeps a partial divider local to the row it crosses", () => {
   }
 });
 
+test("detects thick channels and a one-sided sloped partial divider", () => {
+  const sourceScad = `union() {
+    cube([118, 208, 1.2]);
+    translate([0, 0, 1.1]) cube([2, 208, 40.9]);
+    translate([116, 0, 1.1]) cube([2, 208, 40.9]);
+    for (y = [0, 33.8, 67.6, 101.4, 135.2, 169, 202.8])
+      translate([0, y, 1.1]) cube([118, y == 202.8 ? 5.2 : 5, 40.9]);
+    polyhedron(
+      points=[
+        [59,174,1.1], [59,202.8,1.1], [59,202.8,42], [59,174,42],
+        [70,174,1.1], [70,202.8,1.1], [64,202.8,42], [64,174,42]
+      ],
+      faces=[[0,3,2,1], [4,5,6,7], [0,4,7,3], [1,2,6,5], [0,1,5,4], [3,7,6,2]]
+    );
+  }`;
+  const source = renderStl(sourceScad, "thick-channels.scad");
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "bgsd-thick-channels-test-"));
+  try {
+    const sourcePath = path.join(tempDir, "thick-channels.stl");
+    fs.writeFileSync(sourcePath, source.data);
+    const inferred = converter.createModel(sourcePath, converter.readStlBounds(sourcePath, 1), {
+      ...opts, bottom: 2, clearance: 0, heightExtra: 0,
+      fitContainer: false, detectComponents: true, inferGeometry: true,
+    });
+
+    assert.equal(inferred.wallThickness, 2);
+    assert.equal(inferred.detected.componentCount, 7);
+    assert.deepEqual(inferred.features.map((feature) => feature.size.slice(0, 2)), [
+      [114, 28.8], [114, 28.8], [114, 28.8], [114, 28.8], [114, 28.8],
+      [57, 28.8], [52, 28.8],
+    ]);
+    assert.ok(inferred.detected.xBands.some((band) => band.oneSided));
+  } finally {
+    const resolved = path.resolve(tempDir);
+    if (resolved.startsWith(`${path.resolve(os.tmpdir())}${path.sep}`))
+      fs.rmSync(resolved, { recursive: true, force: true });
+  }
+});
+
+test("detects and reproduces circular holes through a compartment floor", () => {
+  const centers = [
+    [22.45, 16.75], [61.75, 16.75], [101.05, 16.75],
+    [22.45, 46.75], [61.75, 46.75], [101.05, 46.75],
+  ];
+  const sourceScad = `difference() {
+    union() {
+      cube([123.5, 63.5, 1.2]);
+      translate([0, 0, 1.1]) cube([1.2, 63.5, 4.9]);
+      translate([122.3, 0, 1.1]) cube([1.2, 63.5, 4.9]);
+      translate([0, 0, 1.1]) cube([123.5, 1.2, 4.9]);
+      translate([0, 62.3, 1.1]) cube([123.5, 1.2, 4.9]);
+      translate([40.7, 0, 1.1]) cube([2.8, 63.5, 4.9]);
+      translate([80, 0, 1.1]) cube([2.8, 63.5, 4.9]);
+      translate([0, 29.75, 1.1]) cube([123.5, 4, 4.9]);
+    }
+    for (center = ${JSON.stringify(centers)})
+      translate([center[0], center[1], -0.1]) cylinder(h=1.4, d=20, $fn=64);
+  }`;
+  const source = renderStl(sourceScad, "bottom-holes.scad");
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "bgsd-bottom-holes-test-"));
+  try {
+    const sourcePath = path.join(tempDir, "bottom-holes.stl");
+    fs.writeFileSync(sourcePath, source.data);
+    const bounds = converter.readStlBounds(sourcePath, 1);
+    const holes = converter.detectBottomThroughHoles(bounds, 1.2, 2.8);
+    assert.equal(holes.length, 6);
+    assert.deepEqual(holes.map((hole) => hole.center), centers);
+    assert.ok(holes.every((hole) => Math.abs(hole.diameter - 20) <= 0.01));
+
+    const inferred = converter.createModel(sourcePath, bounds, {
+      ...opts, bottom: 2, clearance: 0, heightExtra: 0,
+      fitContainer: false, detectComponents: true, inferGeometry: true,
+    });
+    const scad = converter.renderScad([inferred], {
+      ...opts, includeFile: "boardgame_insert_toolkit_lib.4.scad", inferGeometry: true,
+    }, schema);
+    assert.equal((scad.match(/\/\/ 20mm circular bottom hole/g) || []).length, 6);
+    assert.equal((scad.match(/cylinder\(h=/g) || []).length, 6);
+  } finally {
+    const resolved = path.resolve(tempDir);
+    if (resolved.startsWith(`${path.resolve(os.tmpdir())}${path.sep}`))
+      fs.rmSync(resolved, { recursive: true, force: true });
+  }
+});
+
 test("infers side cutouts and their dimensions from facet normals", () => {
   const geometryOpts = {
     ...opts,
@@ -258,6 +343,23 @@ test("suppresses broad curved surfaces misidentified as cutouts on every side", 
   assert.match(inferred.reason, /broad curved surfaces/);
 });
 
+test("separates tall interior ramps from opposite BIT cutouts", () => {
+  const bounds = { min: [0, 0, 0], max: [118, 208, 42], size: [118, 208, 42] };
+  const x = { start: 2, end: 116, size: 114 };
+  const y = { start: 3, end: 31.8, size: 28.8 };
+  const cutouts = [
+    { side: "left", detected: true, confidence: "high", crossMin: 3, crossMax: 31.8, depth: 5.6, height: 39.8, cutoutType: "INTERIOR" },
+    { side: "right", detected: true, confidence: "high", crossMin: 7, crossMax: 27, depth: 2.9, height: 21, cutoutType: "BOTH" },
+  ];
+
+  const inferred = converter.inferCutoutsForInterval(cutouts, x, y, 40, bounds, 2);
+  assert.deepEqual(inferred.sides, [false, false, false, true]);
+  assert.equal(inferred.type, "BOTH");
+  assert.deepEqual(inferred.ramps, [{
+    side: "left", depth: 5.6, height: 39.8, crossMin: 3, crossMax: 31.8,
+  }]);
+});
+
 test("infers full-height side openings from gaps in planar wall faces", () => {
   const tilesPath = path.join(__dirname, "..", "Tiles.stl");
   const bounds = converter.readStlBounds(tilesPath, 1);
@@ -306,6 +408,45 @@ test("classifies round and filleted cavity walls", () => {
   assert.deepEqual(converter.detectFeatureShape(bounds, interval, interval, 1), {
     shape: "FILLET", confidence: "medium", curvedRatio: 0.057,
   });
+});
+
+test("classifies both vertical hexagon orientations and emits BIT vertical shape", () => {
+  const interval = { start: 1, end: 19, size: 18 };
+  const facet = (angle) => {
+    const radians = angle * Math.PI / 180;
+    return {
+      normal: [Math.cos(radians), Math.sin(radians), 0],
+      area: 10,
+      centroid: [10, 10, 5],
+    };
+  };
+  const bounds = { min: [0, 0, 0], facets: [] };
+
+  bounds.facets = [0, 60, 120].map(facet);
+  assert.deepEqual(converter.detectFeatureShape(bounds, interval, interval, 1), {
+    shape: "HEX",
+    confidence: "high",
+    curvedRatio: 0.667,
+    angularFit: 1,
+    vertical: true,
+  });
+
+  bounds.facets = [30, 90, 150].map(facet);
+  const detected = converter.detectFeatureShape(bounds, interval, interval, 1);
+  assert.deepEqual(detected, {
+    shape: "HEX2",
+    confidence: "high",
+    curvedRatio: 0.667,
+    angularFit: 1,
+    vertical: true,
+  });
+
+  const properties = converter.buildObjectProperties({
+    ...model,
+    features: [{ ...model.features[0], shape: detected }],
+  }, { ...opts, inferGeometry: true });
+  assert.equal(properties.BOX_FEATURE[0].FTR_SHAPE, "HEX2");
+  assert.equal(properties.BOX_FEATURE[0].FTR_SHAPE_VERTICAL_B, true);
 });
 
 test("resolves the default BIT include relative to nested output folders", () => {

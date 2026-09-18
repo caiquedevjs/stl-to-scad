@@ -69,6 +69,17 @@ test("GUI keeps a separate lid name and orientation for every imported model", (
   assert.match(html, /const lidLabelOrientation = model\.lidLabelOrientation \?\? state\.settings\.lidLabelOrientation/);
 });
 
+test("GUI supports automatic and manual vertical hexagon cavities", () => {
+  const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
+  assert.match(html, /<option value="HEX">HEX<\/option>/);
+  assert.match(html, /<option value="HEX2">HEX2<\/option>/);
+  assert.match(html, /function detectRegularPolygonShape\(directions\)/);
+  assert.match(html, /shapeOverride: state\.settings\.shape !== "SQUARE"/);
+  assert.match(html, /model\.shapeOverride = true/);
+  assert.match(html, /state\.settings\.inferGeometry && !model\.shapeOverride/);
+  assert.match(html, /\[ FTR_SHAPE_VERTICAL_B, true \]/);
+});
+
 test("GUI can disable the lid fitting underneath each box", () => {
   const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
   assert.match(html, /checkboxNode\("Encaixar tampa sob a caixa", model\.lidFitUnder !== false/);
@@ -196,7 +207,9 @@ test("geometry inference keeps two side openings on separate cavities", () => {
 
 test("GUI suppresses ambiguous broad curved surfaces on multiple sides", () => {
   const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
-  assert.match(html, /broadCurvedSides\.length >= 3/);
+  assert.match(html, /if \(ambiguousBroadSides\.length\)/);
+  assert.match(html, /function inferredRampsForModel/);
+  assert.match(html, /function renderRampLines/);
   assert.match(html, /Ambiguous broad multi-side surfaces were not emitted as finger cutouts/);
 });
 
@@ -211,6 +224,23 @@ test("GUI preserves wall bands for row-local partial dividers", () => {
 
   assert.match(detectSource, /xBands,\s+yBands,\s+zBands,/);
   assert.match(buildSource, /wallBandsForCrossInterval\(bounds, 0, detected\.xBands, y\)/);
+  assert.match(detectSource, /detectOneSidedWallBands/);
+  assert.match(detectSource, /completeBoundaryBands/);
+});
+
+test("GUI preserves inferred circular bottom holes in generated SCAD", () => {
+  const html = fs.readFileSync(path.join(root, "stl-to-bgsd-gui.html"), "utf8");
+  const detectStart = html.indexOf("    function detectCompartments(");
+  const detectEnd = html.indexOf("    function detectExternalProfileCuts(", detectStart);
+  const renderStart = html.indexOf("    function renderScad(");
+  const renderEnd = html.indexOf("    async function downloadCombined(", renderStart);
+  const detectSource = html.slice(detectStart, detectEnd);
+  const renderSource = html.slice(renderStart, renderEnd);
+
+  assert.match(detectSource, /bottomHoles = detectBottomThroughHoles/);
+  assert.match(detectSource, /function detectBottomThroughHoles/);
+  assert.match(renderSource, /circular bottom hole/);
+  assert.match(renderSource, /cylinder\(h=/);
 });
 
 test("GUI assigns separate floor levels to adjacent compartments", () => {

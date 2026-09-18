@@ -20,7 +20,7 @@ reconstrucao com o STL original.
 - deteccao de paredes retas e multiplos compartimentos;
 - inferencia individual da altura de fundos planos;
 - cavidades com profundidades diferentes no mesmo insert;
-- classificacao aproximada `SQUARE`, `ROUND` e `FILLET`;
+- classificacao aproximada `SQUARE`, `ROUND`, `FILLET`, `HEX`, `HEX2`, `OCT` e `OCT2`;
 - inferencia de aberturas laterais e recortes para os dedos;
 - preservacao de alguns degraus ortogonais do contorno externo;
 - configuracao de paredes, fundo, folgas, tampa, labels e recortes;
@@ -48,6 +48,11 @@ A matriz detalhada da biblioteca esta em [BIT-COVERAGE.md](BIT-COVERAGE.md).
 6. Analisa paredes e lacunas para inferir formato e recortes.
 7. Gera um `OBJECT_BOX` com seus respectivos `BOX_FEATURE`.
 8. Permite revisar os valores antes de baixar SCAD ou renderizar STL.
+
+Para cavidades poligonais, `HEX`/`HEX2` e `OCT`/`OCT2` representam as duas
+orientacoes suportadas pelo BIT. O conversor tenta escolher a orientacao pelas
+normais das paredes do STL. Uma escolha feita no campo **Formato** da interface
+passa a ser manual e tem prioridade sobre essa inferencia.
 
 A inferencia de alturas funciona melhor quando cada cavidade possui um fundo
 horizontal plano e com area suficiente para ser reconhecida. Uma cavidade funda

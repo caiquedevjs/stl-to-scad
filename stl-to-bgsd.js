@@ -423,16 +423,33 @@ function createModel(filePath, bounds, opts) {
 }
 
 function detectCompartments(bounds, fallbackBottom = 2) {
-  const xBands = filterPartialInteriorBands(bounds, 0, detectWallBands(bounds.planes.x, bounds.min[0], bounds.max[0]));
-  const yBands = filterPartialInteriorBands(bounds, 1, detectWallBands(bounds.planes.y, bounds.min[1], bounds.max[1]));
+  let xBands = detectWallBands(bounds.planes.x, bounds.min[0], bounds.max[0]);
+  let yBands = detectWallBands(bounds.planes.y, bounds.min[1], bounds.max[1]);
+  const provisionalWall = median([...xBands, ...yBands].map((band) => band.width).filter((value) => value > 0)) || 2;
+  xBands = completeBoundaryBands(bounds, 0,
+    detectOneSidedWallBands(bounds, 0, xBands, provisionalWall), provisionalWall);
+  yBands = completeBoundaryBands(bounds, 1,
+    detectOneSidedWallBands(bounds, 1, yBands, provisionalWall), provisionalWall);
+  xBands = filterPartialInteriorBands(bounds, 0, xBands);
+  yBands = filterPartialInteriorBands(bounds, 1, yBands);
   const zBands = detectWallBands(bounds.planes.z);
-  const wallThickness = median([...xBands, ...yBands].map((band) => band.width).filter((value) => value > 0)) || 2;
+  const allWallWidths = [...xBands, ...yBands].filter((band) => !band.synthetic)
+    .map((band) => band.width).filter((value) => value > 0);
+  const boundaryWidths = [
+    xBands.find((band) => Math.abs(band.low - bounds.min[0]) <= 0.15),
+    [...xBands].reverse().find((band) => Math.abs(band.high - bounds.max[0]) <= 0.15),
+    yBands.find((band) => Math.abs(band.low - bounds.min[1]) <= 0.15),
+    [...yBands].reverse().find((band) => Math.abs(band.high - bounds.max[1]) <= 0.15),
+  ].filter(Boolean).map((band) => band.width);
+  const boundarySpread = boundaryWidths.length ? Math.max(...boundaryWidths) / Math.min(...boundaryWidths) : 1;
+  const wallThickness = (boundarySpread > 1.5 ? Math.min(...boundaryWidths) : median(allWallWidths)) || 2;
   const bottomBand = zBands.find((band) => Math.abs(band.low - bounds.min[2]) <= 0.1);
   const bottomThickness = bottomBand?.width || fallbackBottom;
   const xIntervals = intervalsBetweenBands(xBands, bounds.min[0], bounds.max[0], wallThickness);
   const yIntervals = intervalsBetweenBands(yBands, bounds.min[1], bounds.max[1], wallThickness);
   const componentCount = xIntervals.length * yIntervals.length;
-  const cutouts = detectSideCutouts(bounds, wallThickness, bottomThickness);
+  const cutouts = detectSideCutouts(bounds, wallThickness, bottomThickness, xIntervals, yIntervals);
+  const bottomHoles = detectBottomThroughHoles(bounds, bottomThickness, wallThickness);
   const profileCuts = detectExternalProfileCuts(bounds, wallThickness);
 
   return {
@@ -445,9 +462,93 @@ function detectCompartments(bounds, fallbackBottom = 2) {
     yIntervals,
     componentCount,
     cutouts,
+    bottomHoles,
     profileCuts,
     detected: componentCount > 1,
   };
+}
+
+function detectBottomThroughHoles(bounds, bottomThickness, wallThickness = 2) {
+  const baseZ = bounds.min[2];
+  const topZ = baseZ + bottomThickness;
+  const zTolerance = Math.max(0.05, bottomThickness * 0.08);
+  const edgeMargin = Math.max(0.5, Math.min(wallThickness, bounds.size[0] * 0.05, bounds.size[1] * 0.05));
+  const facets = bounds.facets.filter((facet) => {
+    if (Math.abs(facet.normal[2]) > 0.15) return false;
+    const zValues = facet.points.map((point) => point[2]);
+    const minZ = Math.min(...zValues);
+    const maxZ = Math.max(...zValues);
+    const [x, y] = facet.centroid;
+    return minZ <= baseZ + zTolerance && maxZ >= topZ - zTolerance && maxZ <= topZ + zTolerance &&
+      x > bounds.min[0] + edgeMargin && x < bounds.max[0] - edgeMargin &&
+      y > bounds.min[1] + edgeMargin && y < bounds.max[1] - edgeMargin;
+  });
+  if (facets.length < 12) return [];
+
+  const parents = facets.map((_, index) => index);
+  const find = (index) => {
+    while (parents[index] !== index) {
+      parents[index] = parents[parents[index]];
+      index = parents[index];
+    }
+    return index;
+  };
+  const join = (left, right) => {
+    const leftRoot = find(left);
+    const rightRoot = find(right);
+    if (leftRoot !== rightRoot) parents[rightRoot] = leftRoot;
+  };
+  const vertices = new Map();
+  facets.forEach((facet, index) => {
+    for (const point of facet.points) {
+      const key = point.map((value) => roundTo(value, 3)).join(",");
+      if (vertices.has(key)) join(index, vertices.get(key));
+      else vertices.set(key, index);
+    }
+  });
+
+  const groups = new Map();
+  facets.forEach((facet, index) => {
+    const root = find(index);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push(facet);
+  });
+
+  const holes = [];
+  for (const group of groups.values()) {
+    if (group.length < 16) continue;
+    const xyPoints = new Map();
+    for (const point of group.flatMap((facet) => facet.points)) {
+      const key = `${roundTo(point[0], 3)},${roundTo(point[1], 3)}`;
+      if (!xyPoints.has(key)) xyPoints.set(key, [point[0], point[1]]);
+    }
+    const points = [...xyPoints.values()];
+    const xValues = points.map((point) => point[0]);
+    const yValues = points.map((point) => point[1]);
+    const width = Math.max(...xValues) - Math.min(...xValues);
+    const height = Math.max(...yValues) - Math.min(...yValues);
+    if (Math.min(width, height) < 3 || Math.max(width, height) / Math.min(width, height) > 1.12) continue;
+    const center = [
+      (Math.min(...xValues) + Math.max(...xValues)) / 2,
+      (Math.min(...yValues) + Math.max(...yValues)) / 2,
+    ];
+    const radii = points.map((point) => Math.hypot(point[0] - center[0], point[1] - center[1]));
+    const radius = radii.reduce((sum, value) => sum + value, 0) / radii.length;
+    const radialError = Math.sqrt(radii.reduce((sum, value) => sum + (value - radius) ** 2, 0) / radii.length);
+    const angleBins = new Set(points.map((point) => {
+      const angle = Math.atan2(point[1] - center[1], point[0] - center[0]);
+      return Math.floor(((angle + Math.PI) / (Math.PI * 2)) * 36) % 36;
+    }));
+    if (radialError > Math.max(0.08, radius * 0.025) || angleBins.size < 24) continue;
+    holes.push({
+      center: [round(center[0] - bounds.min[0]), round(center[1] - bounds.min[1])],
+      diameter: round(radius * 2),
+      depth: round(bottomThickness),
+      segments: Math.max(32, Math.min(180, points.length)),
+      confidence: "high",
+    });
+  }
+  return holes.sort((left, right) => left.center[1] - right.center[1] || left.center[0] - right.center[0]);
 }
 
 function detectExternalProfileCuts(bounds, wallThickness = 2) {
@@ -487,7 +588,7 @@ function detectExternalProfileCuts(bounds, wallThickness = 2) {
   return cuts;
 }
 
-function detectSideCutouts(bounds, wallThickness, bottomThickness) {
+function detectSideCutouts(bounds, wallThickness, bottomThickness, xIntervals = null, yIntervals = null) {
   const [sizeX, sizeY, sizeZ] = bounds.size;
   const topThreshold = bounds.min[2] + Math.max(bottomThickness, sizeZ * 0.2);
   const sideDefinitions = [
@@ -508,34 +609,56 @@ function detectSideCutouts(bounds, wallThickness, bottomThickness) {
       return alongDepth >= -0.1 && alongDepth <= side.depthLimit &&
         facet.centroid[2] >= topThreshold && (cylindricalCut || planCut) && facet.area >= 0.01;
     });
-    const area = facets.reduce((sum, facet) => sum + facet.area, 0);
-    const points = facets.flatMap((facet) => facet.points);
-    if (!points.length) {
+    if (!facets.length) {
       const planarOpenings = detectPlanarSideOpenings(bounds, side, wallThickness);
       if (planarOpenings.length) return planarOpenings;
       return [{ side: side.name, detected: false, confidence: "low", facets: 0, area: 0 }];
     }
-    const crossValues = points.map((point) => point[side.crossAxis]);
-    const depthValues = points.map((point) => (point[side.axis] - side.edge) * side.direction);
-    const zValues = points.map((point) => point[2]);
-    const crossSpan = Math.max(...crossValues) - Math.min(...crossValues);
-    const height = Math.max(...zValues) - Math.min(...zValues);
-    const minimumCutoutHeight = Math.max(2, wallThickness * 1.25);
-    const confidence = height >= minimumCutoutHeight && facets.length >= 8 && area >= 20 && crossSpan >= wallThickness * 2
-      ? "high"
-      : height >= minimumCutoutHeight && facets.length >= 2 && area >= 8 && crossSpan >= wallThickness * 1.5 ? "medium" : "low";
-    return [{
-      side: side.name,
-      detected: confidence !== "low",
-      confidence,
-      facets: facets.length,
-      area: round(area),
-      crossMin: Math.min(...crossValues),
-      crossMax: Math.max(...crossValues),
-      cutoutType: Math.min(...depthValues) <= Math.max(0.15, wallThickness * 0.5) ? "BOTH" : "INTERIOR",
-      depth: Math.max(...depthValues) - Math.min(...depthValues),
-      height,
+    const requestedIntervals = side.crossAxis === 0 ? xIntervals : yIntervals;
+    const regions = requestedIntervals?.length ? requestedIntervals : [{
+      start: bounds.min[side.crossAxis],
+      end: bounds.max[side.crossAxis],
+      size: bounds.size[side.crossAxis],
     }];
+    const results = regions.map((region) => {
+      const regionFacets = facets.filter((facet) => {
+        const crossValues = facet.points.map((point) => point[side.crossAxis]);
+        const crossSpan = Math.max(...crossValues) - Math.min(...crossValues);
+        const maximumLocalSpan = Math.max(region.size + wallThickness * 2, bounds.size[side.crossAxis] * 0.6);
+        return facet.centroid[side.crossAxis] >= region.start - 0.1 &&
+          facet.centroid[side.crossAxis] <= region.end + 0.1 &&
+          crossSpan <= maximumLocalSpan;
+      });
+      const area = regionFacets.reduce((sum, facet) => sum + facet.area, 0);
+      const points = regionFacets.flatMap((facet) => facet.points);
+      if (!points.length) return null;
+      const crossValues = points.map((point) => point[side.crossAxis]);
+      const depthValues = points.map((point) => (point[side.axis] - side.edge) * side.direction);
+      const zValues = points.map((point) => point[2]);
+      const crossMin = Math.max(region.start, Math.min(...crossValues));
+      const crossMax = Math.min(region.end, Math.max(...crossValues));
+      const crossSpan = crossMax - crossMin;
+      const height = Math.max(...zValues) - Math.min(...zValues);
+      const minimumCutoutHeight = Math.max(2, wallThickness * 1.25, sizeZ * 0.18);
+      const surfaceCoverage = area / Math.max(1, crossSpan * height);
+      const confidence = height >= minimumCutoutHeight && regionFacets.length >= 8 && area >= 20 && crossSpan >= wallThickness * 2
+        ? "high"
+        : height >= minimumCutoutHeight && (regionFacets.length >= 2 || surfaceCoverage >= 0.5) &&
+          area >= 8 && crossSpan >= wallThickness * 1.5 ? "medium" : "low";
+      return {
+        side: side.name,
+        detected: confidence !== "low",
+        confidence,
+        facets: regionFacets.length,
+        area: round(area),
+        crossMin: round(crossMin),
+        crossMax: round(crossMax),
+        cutoutType: Math.min(...depthValues) <= Math.max(0.15, wallThickness * 0.5) ? "BOTH" : "INTERIOR",
+        depth: Math.max(...depthValues) - Math.min(...depthValues),
+        height,
+      };
+    }).filter(Boolean);
+    return results.length ? results : [{ side: side.name, detected: false, confidence: "low", facets: 0, area: 0 }];
   });
 }
 
@@ -627,18 +750,61 @@ function triangleIntervalAtZ(points, crossAxis, z) {
   return [Math.min(...values), Math.max(...values)];
 }
 
+function regularPolygonFit(directions, targets, tolerance = 7) {
+  const totalArea = directions.reduce((sum, direction) => sum + direction.area, 0);
+  if (totalArea <= 0) return { score: 0, balanced: false };
+  const buckets = targets.map(() => 0);
+  for (const direction of directions) {
+    let nearestIndex = -1;
+    let nearestDistance = Infinity;
+    for (let index = 0; index < targets.length; index++) {
+      const rawDistance = Math.abs(direction.angle - targets[index]);
+      const distance = Math.min(rawDistance, 180 - rawDistance);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = index;
+      }
+    }
+    if (nearestDistance <= tolerance) buckets[nearestIndex] += direction.area;
+  }
+  const matchedArea = buckets.reduce((sum, area) => sum + area, 0);
+  return {
+    score: matchedArea / totalArea,
+    balanced: buckets.every((area) => area >= totalArea * 0.08),
+  };
+}
+
+function detectRegularPolygonShape(directions) {
+  const candidates = [
+    { shape: "HEX", targets: [0, 60, 120] },
+    { shape: "HEX2", targets: [30, 90, 150] },
+    { shape: "OCT", targets: [0, 45, 90, 135] },
+    { shape: "OCT2", targets: [22.5, 67.5, 112.5, 157.5] },
+  ].map((candidate) => ({ ...candidate, ...regularPolygonFit(directions, candidate.targets) }))
+    .filter((candidate) => candidate.balanced && candidate.score >= 0.82)
+    .sort((left, right) => right.score - left.score);
+  return candidates[0] || null;
+}
+
 function detectFeatureShape(bounds, xInterval, yInterval, bottomThickness) {
   const zMin = bounds.min[2] + bottomThickness + 0.1;
   let planarArea = 0;
   let curvedArea = 0;
   let curvedFacets = 0;
+  const directions = [];
   const margin = 0.2;
   for (const facet of bounds.facets) {
     const [x, y, z] = facet.centroid;
     if (x < xInterval.start - margin || x > xInterval.end + margin ||
         y < yInterval.start - margin || y > yInterval.end + margin || z < zMin) continue;
+    const [signedX, signedY, signedZ] = facet.normal;
     const [nx, ny, nz] = facet.normal.map(Math.abs);
     if (nz > 0.15) continue;
+    const horizontalLength = Math.hypot(signedX, signedY);
+    if (horizontalLength >= 0.9) {
+      const rawAngle = Math.atan2(signedY, signedX) * 180 / Math.PI;
+      directions.push({ angle: ((rawAngle % 180) + 180) % 180, area: facet.area });
+    }
     const diagonal = nx > 0.08 && ny > 0.08;
     if (diagonal) {
       curvedArea += facet.area;
@@ -648,6 +814,16 @@ function detectFeatureShape(bounds, xInterval, yInterval, bottomThickness) {
     }
   }
   const ratio = curvedArea / Math.max(1, curvedArea + planarArea);
+  const polygon = detectRegularPolygonShape(directions);
+  if (polygon) {
+    return {
+      shape: polygon.shape,
+      confidence: polygon.score >= 0.92 ? "high" : "medium",
+      curvedRatio: round(ratio),
+      angularFit: round(polygon.score),
+      vertical: true,
+    };
+  }
   if (curvedFacets >= 12 && ratio >= 0.45) return { shape: "ROUND", confidence: "high", curvedRatio: round(ratio) };
   if (curvedFacets >= 6 && ratio >= 0.04) return { shape: "FILLET", confidence: ratio >= 0.12 ? "high" : "medium", curvedRatio: round(ratio) };
   return { shape: "SQUARE", confidence: planarArea > 20 ? "high" : "medium", curvedRatio: round(ratio) };
@@ -663,7 +839,7 @@ function detectWallBands(planeMap, minimum = null, maximum = null) {
     const [low, lowArea] = entries[i];
     const [high, highArea] = entries[i + 1];
     const width = high - low;
-    if (width >= 0.35 && width <= 4 && lowArea >= maxArea * 0.1 && highArea >= maxArea * 0.1) {
+    if (width >= 0.35 && width <= 8 && lowArea >= maxArea * 0.1 && highArea >= maxArea * 0.1) {
       selected.set(low, lowArea);
       selected.set(high, highArea);
     }
@@ -674,7 +850,7 @@ function detectWallBands(planeMap, minimum = null, maximum = null) {
     if (!boundary || boundary[1] < maxArea * 0.1) continue;
     const inward = entries.filter(([coordinate, area]) => {
       const distance = (coordinate - edge) * direction;
-      return distance >= 0.35 && distance <= 4 && area >= maxArea * 0.1;
+      return distance >= 0.35 && distance <= 8 && area >= maxArea * 0.1;
     }).sort((a, b) => Math.abs(a[0] - edge) - Math.abs(b[0] - edge))[0];
     if (inward) {
       selected.set(boundary[0], boundary[1]);
@@ -688,7 +864,7 @@ function detectWallBands(planeMap, minimum = null, maximum = null) {
     const low = significant[i][0];
     const high = significant[i + 1][0];
     const width = high - low;
-    if (width >= 0.35 && width <= 4) {
+    if (width >= 0.35 && width <= 8) {
       bands.push({ low, high, width: round(width), area: significant[i][1] + significant[i + 1][1] });
       i++;
     }
@@ -696,10 +872,60 @@ function detectWallBands(planeMap, minimum = null, maximum = null) {
   return bands;
 }
 
+function detectOneSidedWallBands(bounds, axis, bands, wallThickness) {
+  const planeMap = bounds.planes[axis === 0 ? "x" : "y"];
+  const entries = [...planeMap.entries()];
+  if (!entries.length) return bands;
+  const maxArea = Math.max(...entries.map((entry) => entry[1]));
+  const crossAxis = axis === 0 ? 1 : 0;
+  const minimumSpan = Math.max(5, bounds.size[crossAxis] * 0.1);
+  const result = [...bands];
+
+  for (const [coordinate, planeArea] of entries) {
+    if (planeArea < maxArea * 0.075) continue;
+    if (coordinate <= bounds.min[axis] + wallThickness * 2 ||
+        coordinate >= bounds.max[axis] - wallThickness * 2) continue;
+    if (result.some((band) => coordinate >= band.low - 0.1 && coordinate <= band.high + 0.1)) continue;
+    const facets = bounds.facets.filter((facet) =>
+      Math.abs(facet.normal[axis]) >= 0.98 && Math.abs(facet.centroid[axis] - coordinate) <= 0.1);
+    const points = facets.flatMap((facet) => facet.points);
+    if (!points.length) continue;
+    const crossValues = points.map((point) => point[crossAxis]);
+    const zValues = points.map((point) => point[2]);
+    const crossSpan = Math.max(...crossValues) - Math.min(...crossValues);
+    const zSpan = Math.max(...zValues) - Math.min(...zValues);
+    if (crossSpan < minimumSpan || zSpan < bounds.size[2] * 0.3) continue;
+    const normalDirection = facets.reduce((sum, facet) => sum + facet.normal[axis] * facet.area, 0);
+    const low = normalDirection < 0 ? coordinate : coordinate - wallThickness;
+    const high = normalDirection < 0 ? coordinate + wallThickness : coordinate;
+    if (low <= bounds.min[axis] || high >= bounds.max[axis]) continue;
+    if (result.some((band) => high > band.low - 0.1 && low < band.high + 0.1)) continue;
+    result.push({ low: round(low), high: round(high), width: round(high - low), area: planeArea, oneSided: true });
+  }
+  return result.sort((left, right) => left.low - right.low);
+}
+
+function completeBoundaryBands(bounds, axis, bands, fallbackWidth) {
+  if (!bands.length) return bands;
+  const result = [...bands].sort((left, right) => left.low - right.low);
+  const tolerance = 0.15;
+  const lowerBoundary = result.find((band) => Math.abs(band.low - bounds.min[axis]) <= tolerance);
+  const upperBoundary = result.find((band) => Math.abs(band.high - bounds.max[axis]) <= tolerance);
+  if (!lowerBoundary) {
+    const width = upperBoundary?.width || fallbackWidth;
+    result.push({ low: bounds.min[axis], high: round(bounds.min[axis] + width), width: round(width), synthetic: true });
+  }
+  if (!upperBoundary) {
+    const width = lowerBoundary?.width || fallbackWidth;
+    result.push({ low: round(bounds.max[axis] - width), high: bounds.max[axis], width: round(width), synthetic: true });
+  }
+  return result.sort((left, right) => left.low - right.low);
+}
+
 function filterPartialInteriorBands(bounds, axis, bands) {
   if (bands.length <= 2) return bands;
   const crossAxis = axis === 0 ? 1 : 0;
-  const requiredSpan = Math.max(5, bounds.size[crossAxis] * 0.2);
+  const requiredSpan = Math.max(5, bounds.size[crossAxis] * 0.1);
   return bands.filter((band, index) => {
     if (index === 0 || index === bands.length - 1) return true;
     const points = bounds.facets
@@ -915,6 +1141,14 @@ function inferCutoutsForInterval(cutouts, xInterval, yInterval, featureHeight, b
   const boxHeight = bounds.size[2];
   const baseHeight = boxHeight - featureHeight;
   const maximumHeightPct = Math.max(0, (1 - (wallThickness + baseHeight + 0.5) / boxHeight) * 100);
+  if (maximumHeightPct < 5) {
+    return {
+      sides: [false, false, false, false],
+      confidence: "low",
+      suppressed: true,
+      reason: "insufficient printable height for side cutouts",
+    };
+  }
   const percentages = active.map((cutout) => {
     const crossInterval = cutout.side === "front" || cutout.side === "back" ? xInterval : yInterval;
     const depthInterval = cutout.side === "front" || cutout.side === "back" ? yInterval : xInterval;
@@ -928,12 +1162,42 @@ function inferCutoutsForInterval(cutouts, xInterval, yInterval, featureHeight, b
   });
   const broadCurvedSides = active.filter((cutout, index) =>
     !cutout.planarOpening && percentages[index].width >= 80 && percentages[index].height >= 60);
-  if (active.length >= 3 && broadCurvedSides.length >= 3) {
+  const ambiguousBroadSides = broadCurvedSides.filter((cutout) => {
+    const crossSize = cutout.side === "front" || cutout.side === "back" ? bounds.size[0] : bounds.size[1];
+    return (cutout.crossMax - cutout.crossMin) / crossSize >= 0.8 && cutout.height / bounds.size[2] >= 0.8;
+  });
+  if (ambiguousBroadSides.length) {
+    const filteredMatches = matches.map((cutout) => ambiguousBroadSides.includes(cutout) ? null : cutout);
+    const retained = filteredMatches.filter(Boolean);
+    if (retained.length) {
+      return inferCutoutsForInterval(
+        cutouts.filter((cutout) => !ambiguousBroadSides.includes(cutout)),
+        xInterval, yInterval, featureHeight, bounds, wallThickness);
+    }
     return {
-      sides: [false, false, false, false],
+      sides: filteredMatches.map(Boolean),
       confidence: "low",
       suppressed: true,
       reason: "ambiguous broad curved surfaces on multiple sides",
+    };
+  }
+  const rampCutouts = active.filter((cutout, index) =>
+    !cutout.planarOpening && cutout.cutoutType === "INTERIOR" &&
+    percentages[index].width >= 80 && cutout.height / featureHeight >= 0.8 &&
+    cutout.depth >= wallThickness * 1.5);
+  if (rampCutouts.length) {
+    const remaining = inferCutoutsForInterval(
+      cutouts.filter((cutout) => !rampCutouts.includes(cutout)),
+      xInterval, yInterval, featureHeight, bounds, wallThickness);
+    return {
+      ...remaining,
+      ramps: rampCutouts.map((cutout) => ({
+        side: cutout.side,
+        depth: round(cutout.depth),
+        height: round(cutout.height),
+        crossMin: round(cutout.crossMin),
+        crossMax: round(cutout.crossMax),
+      })),
     };
   }
   return {
@@ -1073,6 +1337,9 @@ function buildObjectProperties(model, opts) {
         POSITION_XY: feature.position,
         ...buildCutoutProperties(featureIndex, opts, feature),
       };
+      if (opts.inferGeometry && feature.shape?.vertical === true) {
+        featureProperties.FTR_SHAPE_VERTICAL_B = true;
+      }
       if (opts.featureLabels) {
         featureProperties.LABEL = buildLabelProperties(
           feature.name.replace(/\s+cavity/i, ""),
@@ -1084,6 +1351,61 @@ function buildObjectProperties(model, opts) {
     });
   }
   return properties;
+}
+
+function inferredRampsForModel(model, inferGeometry = true) {
+  if (!inferGeometry) return [];
+  return (model.features || []).flatMap((feature) => {
+    if (!feature.cutoutInference?.ramps?.length || !feature.position.every(Number.isFinite)) return [];
+    const x0 = round((model.wallThickness || 0) + feature.position[0]);
+    const y0 = round((model.wallThickness || 0) + feature.position[1]);
+    return feature.cutoutInference.ramps.map((ramp) => ({
+      ...ramp,
+      name: feature.name,
+      x0,
+      x1: round(x0 + feature.size[0]),
+      y0,
+      y1: round(y0 + feature.size[1]),
+      z0: round(model.boxSize[2] - feature.size[2]),
+      z1: round(model.boxSize[2]),
+    }));
+  });
+}
+
+function renderRampLines(lines, indent, ramp) {
+  const epsilon = 0.05;
+  const skin = 0.1;
+  const depth = Math.max(skin, ramp.depth);
+  let bottomPosition;
+  let bottomSize;
+  let topPosition;
+  let topSize;
+  if (ramp.side === "left") {
+    bottomPosition = [ramp.x0 - epsilon, ramp.y0, ramp.z0 - epsilon];
+    bottomSize = [depth + epsilon, ramp.y1 - ramp.y0, skin];
+    topPosition = [ramp.x0 - epsilon, ramp.y0, ramp.z1 - skin];
+    topSize = [skin, ramp.y1 - ramp.y0, skin];
+  } else if (ramp.side === "right") {
+    bottomPosition = [ramp.x1 - depth, ramp.y0, ramp.z0 - epsilon];
+    bottomSize = [depth + epsilon, ramp.y1 - ramp.y0, skin];
+    topPosition = [ramp.x1 - epsilon, ramp.y0, ramp.z1 - skin];
+    topSize = [skin, ramp.y1 - ramp.y0, skin];
+  } else if (ramp.side === "front") {
+    bottomPosition = [ramp.x0, ramp.y0 - epsilon, ramp.z0 - epsilon];
+    bottomSize = [ramp.x1 - ramp.x0, depth + epsilon, skin];
+    topPosition = [ramp.x0, ramp.y0 - epsilon, ramp.z1 - skin];
+    topSize = [ramp.x1 - ramp.x0, skin, skin];
+  } else {
+    bottomPosition = [ramp.x0, ramp.y1 - depth, ramp.z0 - epsilon];
+    bottomSize = [ramp.x1 - ramp.x0, depth + epsilon, skin];
+    topPosition = [ramp.x0, ramp.y1 - epsilon, ramp.z1 - skin];
+    topSize = [ramp.x1 - ramp.x0, skin, skin];
+  }
+  lines.push(`${indent}// ${ramp.name}: inferred ${ramp.side} cavity ramp`);
+  lines.push(`${indent}hull() {`);
+  lines.push(`${indent}    translate(${vec(bottomPosition)}) cube(${vec(bottomSize)});`);
+  lines.push(`${indent}    translate(${vec(topPosition)}) cube(${vec(topSize)});`);
+  lines.push(`${indent}}`);
 }
 
 function readJsonFile(filePath, label) {
@@ -1336,6 +1658,10 @@ function renderScad(models, opts, schema, config = {}) {
     if (profileCuts.length) {
       lines.push(`    // Inferred external profile cuts: ${profileCuts.map((cut) => `${cut.corner} ${vec(cut.size)}`).join(", ")}`);
     }
+    const bottomHoles = opts.inferGeometry ? (model.detected?.bottomHoles || []) : [];
+    if (bottomHoles.length) {
+      lines.push(`    // Inferred circular bottom holes: ${bottomHoles.map((hole) => `${round(hole.diameter)}mm at ${vec(hole.center)}`).join(", ")}`);
+    }
   for (const feature of model.features || []) {
     if (feature.floorTopZ != null) {
       lines.push(`    // ${feature.name}: measured floor ${round(feature.floorTopZ - model.bounds.min[2])}mm above STL base`);
@@ -1356,13 +1682,31 @@ function renderScad(models, opts, schema, config = {}) {
 
   lines.push("];");
   const profileCuts = models.length === 1 ? (models[0].detected?.profileCuts || []) : [];
-  if (profileCuts.length) {
+  const bottomHoles = models.length === 1 && opts.inferGeometry ? (models[0].detected?.bottomHoles || []) : [];
+  const ramps = models.length === 1 ? inferredRampsForModel(models[0], opts.inferGeometry) : [];
+  if (profileCuts.length || bottomHoles.length) {
     lines.push("difference() {");
-    lines.push("    Make(data);");
+    if (ramps.length) {
+      lines.push("    union() {");
+      lines.push("        Make(data);");
+      for (const ramp of ramps) renderRampLines(lines, "        ", ramp);
+      lines.push("    }");
+    } else {
+      lines.push("    Make(data);");
+    }
     for (const cut of profileCuts) {
       lines.push(`    // ${cut.corner} external step`);
       lines.push(`    translate([${round(cut.min[0])}, ${round(cut.min[1])}, -0.05]) cube([${round(cut.size[0] + 0.05)}, ${round(cut.size[1] + 0.05)}, ${round(models[0].boxSize[2] + 0.1)}]);`);
     }
+    for (const hole of bottomHoles) {
+      lines.push(`    // ${round(hole.diameter)}mm circular bottom hole`);
+      lines.push(`    translate([${round(hole.center[0])}, ${round(hole.center[1])}, -0.05]) cylinder(h=${round(models[0].wallThickness + 0.1)}, d=${round(hole.diameter)}, $fn=${hole.segments});`);
+    }
+    lines.push("}");
+  } else if (ramps.length) {
+    lines.push("union() {");
+    lines.push("    Make(data);");
+    for (const ramp of ramps) renderRampLines(lines, "    ", ramp);
     lines.push("}");
   } else {
     lines.push("Make(data);");
@@ -1449,6 +1793,7 @@ module.exports = {
   buildObjectProperties,
   contextForObjectType,
   createModel,
+  detectBottomThroughHoles,
   detectExternalProfileCuts,
   detectFeatureShape,
   detectSideCutouts,
